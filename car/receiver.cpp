@@ -36,6 +36,9 @@ void receiver_init(char *port)
 	
 //	sock=socket(AF_INET, SOCK_DGRAM, 0);
 	sock = socket(AF_INET, SOCK_STREAM, 0);
+	int doReuse = 1;
+	setsockopt(sock, SOL_SOCKET, SO_REUSEPORT,
+           (const char *)&doReuse, sizeof(doReuse)); 
 	if (sock < 0) error_receiver("Opening socket");
 	length = sizeof(server);
 	bzero(&server,length);
@@ -68,4 +71,8 @@ unsigned char* receiver(){
 //	cout << hex << recvPacket[0]<<endl;
 	//close(newsockfd);
 	return recvPacket;
+}
+
+void close_receiver(){
+	close(newsockfd);
 }

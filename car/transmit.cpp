@@ -18,14 +18,15 @@ static int sock, n;
 static unsigned int length;
 static struct sockaddr_in server, from;
 static struct hostent *hp;
-
 void error_transmit(const char *);
 
 int transmit_init(char *ip_addr, char* port)
 {
 	sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sock < 0) error_transmit("socket");
-
+	//int doReuse = 1;
+	//intsetsockopt(sock, SOL_SOCKET, SO_REUSEPORT,
+    //int       (const char *)&doReuse, sizeof(doReuse)); 
    server.sin_family = AF_INET;
    hp = gethostbyname(ip_addr);
    if (hp==0) error_transmit("Unknown host");
@@ -50,6 +51,10 @@ int transmit(unsigned char* data){
 	if (n < 0) error_transmit("Write");
    
 //	close(sock);
+}
+
+void close_transmit(){
+	close(sock);
 }
 
 void error_transmit(const char *msg)

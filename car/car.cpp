@@ -4,7 +4,7 @@
  * by Isaac Maia
  */
 
-#include "opencv2/opencv.hpp"
+//#include "opencv2/opencv.hpp"
 #include <iostream>
 #include <sys/socket.h> 
 #include <arpa/inet.h>
@@ -13,11 +13,12 @@
 #include <unistd.h> 
 #include <string.h>
 #include <stdio.h>
+#include <cstdlib>
 #include "receiver.h"
 #include "transmit.h"
 #include "GPIOClass.h"
 
-using namespace cv;
+//using namespace cv;
 using namespace std;
 
 
@@ -45,7 +46,8 @@ using namespace std;
 #define BACK    0x02
 #define LEFT    0x03
 #define RIGHT   0x04
-
+#define SIG_INT 0x05
+#define SHUTDOWN 0x06
 
 /**************************
         VIDEO
@@ -135,9 +137,9 @@ void right(){
 
 
 
-static char* snd_PORT = "2022"; 
-static char* rcv_PORT="2023";
-static char* IP_ADDR="192.168.2.101";
+static char* snd_PORT = "10024"; 
+static char* rcv_PORT="10023";
+static char* IP_ADDR="192.168.0.101";
 
 int requestFlag = 0;
 int main(int argc, char** argv){
@@ -173,10 +175,8 @@ int main(int argc, char** argv){
     rearLeft2->setdir_gpio("out");
     rearRight1->setdir_gpio("out");
     rearRight2->setdir_gpio("out");
-   int counter = 0; 
 
     while(1){
-	cout << counter ++ << endl;
 		usleep(100000);
 		idle();
         receivedPacket = receiver();
@@ -200,6 +200,17 @@ int main(int argc, char** argv){
                     else if((receivedPacket[1] == RIGHT)){
                         right();
                     }
+					else if(receivedPacket[1] == SIG_INT){
+						close_transmit();
+						close_receiver();
+						cout << "DISCONNECTED..." << endl;
+						usleep(3000000);
+						receiver_init(rcv_PORT);
+					    transmit_init(IP_ADDR, snd_PORT);
+					}
+					else if(receivedPacket[1] == SHUTDOWN){
+						system("sudo shutdown now");
+					}
                     else {
                         idle();
                     }
@@ -217,15 +228,3 @@ int main(int argc, char** argv){
 
 }
 
-
-
-//int main(int argc, char** argv)
-//{	
-//    pthread_t  control_t;
-//
-//    pthread_create(&control_t, NULL, controlThread, NULL);
-//
-//    while(1) {}
-//
-//    return 0;
-//}

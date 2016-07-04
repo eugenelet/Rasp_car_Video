@@ -12,7 +12,7 @@ LIB = -lpthread
 all: car
 
 car: car.cpp
-	g++ car.cpp GPIOClass.cpp $(SRC) $(LIB) $(CFLAGS)  -o $(OUT)
+	g++ car.cpp GPIOClass.cpp $(SRC) $(LIB)  -o $(OUT)
 
 clean:
 	@rm -f $(PROGS) $(OBJS) $(TEMPS) $(OUT)

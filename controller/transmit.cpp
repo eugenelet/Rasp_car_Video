@@ -23,6 +23,9 @@ void error_transmit(const char *);
 int transmit_init(char *ip_addr, char* port)
 {
 	sock = socket(AF_INET, SOCK_STREAM, 0);
+	//int doReuse = 1;
+	//setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+//					           (const char *)&doReuse, sizeof(doReuse)); 
    if (sock < 0) error_transmit("socket");
 
    server.sin_family = AF_INET;
@@ -49,6 +52,10 @@ int transmit(unsigned char* data){
 	if (n < 0) error_transmit("Write");
    
 //	close(sock);
+}
+
+void close_transmit(){
+	close(sock);
 }
 
 void error_transmit(const char *msg)
