@@ -196,9 +196,9 @@ void control_thread(int currentPerimeter){
     //while(1){
         //mtxControl.lock();
         if(currentPerimeter<1000){
-            for(int i = 0; i < 1; i++){
+            for(int i = 0; i < 3; i++){
                 transmit(output);
-                //usleep(1000);
+                usleep(1000);
             }
         }
         //mtxControl.unlock();
