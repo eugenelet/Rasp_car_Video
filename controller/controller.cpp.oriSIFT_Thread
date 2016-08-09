@@ -12,7 +12,7 @@
 **************************************/
 
 #define CONTROL 0x01
-#define DETECT  0x02
+#define PICTURE 0x02
 #define VIDEO   0x03
 
 /*************************************
@@ -168,7 +168,7 @@ void* getch_thread(void* data){
 		}
 		else{
 			receivedPacket = receiver();
-			cout << "ACK1!" << endl;
+			cout << "ACK!" << endl;
 		}
     }
     pthread_exit(NULL);
@@ -176,7 +176,7 @@ void* getch_thread(void* data){
 
 std::mutex mtxCam;
 
-void video_thread(VideoCapture* cap, Mat* frame){
+void task(VideoCapture* cap, Mat* frame){
 	while(1){
 		//cap->grab();
 		mtxCam.lock();
@@ -187,23 +187,6 @@ void video_thread(VideoCapture* cap, Mat* frame){
 	}
 }
 
-mutex mtxControl;
-
-void control_thread(int currentPerimeter){
-    unsigned char output[DATAGRAM_SIZE];
-    output[0] = DETECT;
-    output[1] = FORWARD;
-    //while(1){
-        //mtxControl.lock();
-        if(currentPerimeter<1000){
-            for(int i = 0; i < 3; i++){
-                transmit(output);
-                usleep(1000);
-            }
-        }
-        //mtxControl.unlock();
-    //}
-}
 
 int main(int argc, char** argv)
 {
@@ -260,7 +243,7 @@ int main(int argc, char** argv)
 
     vcap>>frame;
     //vcap.grab();
-    thread t(video_thread, &vcap, &frame);
+    thread t(task, &vcap, &frame);
 
     int perimeter = 0;
     int biasX = 0;
@@ -269,11 +252,6 @@ int main(int argc, char** argv)
     vector< Point2f > fixed_corners(4);
     bool detectFlag = false;
     bool newUpdate = false;
-    int currentPerimeter;
-    //bool control_update;
-    //control_update = false;
-
-    
 
     deque<int*> biasQueue;
 
@@ -401,9 +379,7 @@ int main(int argc, char** argv)
             edge[1] = abs(scene_corners[1].y - scene_corners[2].y) + abs(scene_corners[1].x - scene_corners[2].x);
             edge[2] = abs(scene_corners[2].y - scene_corners[3].y) + abs(scene_corners[2].x - scene_corners[3].x);
             edge[3] = abs(scene_corners[3].y - scene_corners[0].y) + abs(scene_corners[3].x - scene_corners[0].x);
-            //mtxControl.lock();
-            currentPerimeter = edge[0] + edge[1] + edge[2] + edge[3];
-            //mtxControl.unlock();
+            int currentPerimeter = edge[0] + edge[1] + edge[2] + edge[3];
             int *currentBias = new int[4];
             currentBias[0] = scene_corners[0].x;
             currentBias[1] = scene_corners[1].x;
@@ -418,7 +394,7 @@ int main(int argc, char** argv)
             //}
 
             //bias pipeline
-            if(biasQueue.size() != 3){
+            if(biasQueue.size() != 5){
                 biasQueue.push_back(currentBias);
             }
             else{
@@ -430,7 +406,6 @@ int main(int argc, char** argv)
                 int accuBiasDelta = 0;
                 //cout << "SIZEE: " << biasQueue.size() << endl;
                 //computer difference between every 2 frames
-                float base_weight = 0.7;
                 for(int i = 0; i < biasQueue.size(); i++){
                     if(i == 0){
                         continue;
@@ -440,13 +415,12 @@ int main(int argc, char** argv)
                             //cout << "==" << endl;
                             //cout << "QUEUE1: " << biasQueue.at(i)[j] << endl;
                             //cout << "QUEUE2: " << biasQueue.at(i - 1)[j] << endl;
-                            accuBiasDelta += abs(biasQueue.at(i)[j] - biasQueue.at(i - 1)[j])
-                                                *(base_weight + j*0.3);
+                            accuBiasDelta += abs(biasQueue.at(i)[j] - biasQueue.at(i - 1)[j]);
                         }                       
                     }
                 }
 
-                //mtxControl.lock();
+
                 if(currentPerimeter < 100 || accuBiasDelta > 400){
                     detectFlag = false;
                     fixed_corners.clear();
@@ -459,7 +433,6 @@ int main(int argc, char** argv)
                     detectFlag = true;
                     fixed_corners = scene_corners;
                 }
-                //mtxControl.unlock();
             }   
     
             if(fixed_corners.size() != 0){
@@ -475,16 +448,11 @@ int main(int argc, char** argv)
             int bias = (fixed_corners[1].x - fixed_corners[0].x)/2 + fixed_corners[0].x;
 
             if(detectFlag){
-                //mtxControl.lock();
-                //control_update = true;
-                //mtxControl.unlock();
-                thread ctrl_t(control_thread, currentPerimeter);
-                ctrl_t.detach();
                 //cout << "BIAS: " << bias << endl;
                 int biasFromCenter = bias - (img_matches.cols - img_object.cols)/2;
                 //cout << "BIAS From Center: " << biasFromCenter << endl;
                 unsigned char output[DATAGRAM_SIZE];
-                output[0] = DETECT;
+                output[0] = CONTROL;
                 if(biasFromCenter < 0){//object is at left
                     output[1] = LEFT;
                     cout << "LEFT!" << endl;
@@ -496,18 +464,13 @@ int main(int argc, char** argv)
                     transmit(output);
                 }
 
-                //if(currentPerimeter < 1000){
-                //    output[1] = FORWARD;
-                //    cout << "FORWARD!" << endl;
-                //    for(int i = 0; i < 2; i++){
-                //        transmit(output);
-                //    }
-                //}
-            }
-            else{
-                //mtxControl.lock();
-                //control_update = false;
-                //mtxControl.unlock();
+                if(currentPerimeter < 1000){
+                    output[1] = FORWARD;
+                    cout << "FORWARD!" << endl;
+                    for(int i = 0; i < 5; i++){
+                        transmit(output);
+                    }
+                }
             }
             //cout << "Localize the object use " << (double)(end - start) / CLOCKS_PER_SEC << " secs" << endl;
             //-- Show detected matches
