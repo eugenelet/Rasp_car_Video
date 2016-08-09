@@ -270,12 +270,12 @@ int main(int argc, char** argv)
     bool detectFlag = false;
     bool newUpdate = false;
     int currentPerimeter;
+    deque<int*> biasQueue;
     //bool control_update;
     //control_update = false;
 
     
 
-    deque<int*> biasQueue;
 
     while (1){
 

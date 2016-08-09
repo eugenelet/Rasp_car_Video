@@ -30,7 +30,7 @@ using namespace std;
 **************************************/
 
 #define CONTROL 0x01
-#define PICTURE 0x02
+#define DETECT  0x02
 #define VIDEO   0x03
 
 /*************************************
@@ -141,6 +141,49 @@ static char* snd_PORT = "10024";
 static char* rcv_PORT="10023";
 static char* IP_ADDR="192.168.0.101";
 
+
+
+void ripple(unsigned char input){
+	switch(input){
+	case FORWARD:{
+		usleep(8000);
+		idle();
+		usleep(1000);
+		forward();
+		usleep(3000);
+		idle();
+	}	
+	case BACK:{
+		usleep(8000);
+		idle();	
+		usleep(1000);
+		back();
+		usleep(3000);
+		idle();	
+	}		
+	case LEFT:{
+		usleep(8000);
+		idle();	
+		usleep(1000);
+		left();
+		usleep(3000);
+		idle();	
+	}	
+	case RIGHT:{
+		usleep(8000);
+		idle();	
+		usleep(1000);
+		right();
+		usleep(3000);
+		idle();	
+	}
+	default: transmit(output);
+	}
+}
+
+
+
+
 int requestFlag = 0;
 int main(int argc, char** argv){
     unsigned char* receivedPacket;
@@ -177,19 +220,20 @@ int main(int argc, char** argv){
     rearRight2->setdir_gpio("out");
 
     while(1){
-		usleep(100000);
-		idle();
         receivedPacket = receiver();
         //cout << receivedPacket[0]<<endl;      
         if((receivedPacket[0] == CONTROL)){
             opcode = CONTROL;   
-        }       
+        }
+		else if(receivedPacket[0] == DETECT){
+			opcode = DETECT;
+		}
         else{opcode = NULL;}
 
         switch(opcode){
             case CONTROL:{
                     if((receivedPacket[1] == FORWARD)){
-        		        forward();
+       		        	forward();
                     }
                     else if((receivedPacket[1] == BACK)){
                         back();
@@ -206,7 +250,7 @@ int main(int argc, char** argv){
 						cout << "DISCONNECTED..." << endl;
 						usleep(3000000);
 						receiver_init(rcv_PORT);
-					    transmit_init(IP_ADDR, snd_PORT);
+			 			transmit_init(IP_ADDR, snd_PORT);
 					}
 					else if(receivedPacket[1] == SHUTDOWN){
 						system("sudo shutdown now");
@@ -214,14 +258,35 @@ int main(int argc, char** argv){
                     else {
                         idle();
                     }
+					usleep(20000);
+					idle();
+                    
+                    break;  
+                }
+            case DETECT:{
+                    if((receivedPacket[1] == FORWARD)){
+       		        	forward();
+                    }
+                    else if((receivedPacket[1] == BACK)){
+                        back();
+                    }
+                    else if((receivedPacket[1] == LEFT)){
+                        left();
+                    }
+                    else if((receivedPacket[1] == RIGHT)){
+                        right();
+                    }
+                    else {
+                        idle();
+                    }
+					usleep(8000);
+					idle();
                     
                     break;  
                 }
 
+
             default:{}
-
-
-
         }
     }
 	return 0;
