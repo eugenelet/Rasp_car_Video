@@ -28,13 +28,6 @@ static char* IP_ADDR="192.168.0.100";
 
 /////////////////////////////////////////////////////////////////
 
-int perimeter = 0;
-int biasX[4] = {0, 0, 0 ,0};
-vector<int*> accuBias;
-vector< Point2f > fixed_corners(4);
-bool detectFlag = false;
-deque<int*> biasQueue;
-
 /////////////////////////////////////////////////////////////////
 
 
@@ -203,7 +196,26 @@ int main(int argc, char* argv[])
         computeSift(haha[1], target2, imread(targetFile),time_on);
         // haha.filterKeyPoints_Hessian(target, imread(targetFile));
         //haha.drawKeyPoints(targetFile);
-        VideoCapture cap(0);
+        // VideoCapture cap(0);
+        // cv::VideoCapture vcap;
+        // vcap.set(CV_CAP_PROP_BUFFERSIZE, 3);
+        // cv::Mat frame;
+
+    //    const std::string videoStreamAddress = "http://192.168.0.100:8090/?action=stream"; 
+        // const std::string videoStreamAddress = "http://192.168.0.100:8080/stream/video.mjpeg"; 
+        /* it may be an address of an mjpeg stream, 
+        e.g. "http://user:pass@cam_address:8081/cgi/mjpg/mjpg.cgi?.mjpg" */
+
+        //open the video stream and make sure it's opened
+        // if(!vcap.open(videoStreamAddress)) {
+        //     std::cout << "Error opening video stream or file" << std::endl;
+        //     return -1; 
+        // }  
+
+        // vcap>>frame;
+        // //vcap.grab();
+        // thread t(task, &vcap, &frame);
+
 
         while (1){
             Mat img_scene;

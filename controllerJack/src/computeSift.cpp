@@ -37,8 +37,8 @@ void computeSift_left(mySIFT &sift_obj, Mat img_scene, Mat img_color, bool time_
 		sift_obj.LoadImage(img_scene);
 		sift_obj.createDoG();
 		sift_obj.detectKeypoints();
-		// sift_obj.filterKeyPoints();
-		sift_obj.filterKeyPoints_Hessian_left(img_scene, img_color);
+		sift_obj.filterKeyPoints();
+		// sift_obj.filterKeyPoints_Hessian_left(img_scene, img_color);
 		sift_obj.computeDescriptor();
 	}
 }
@@ -79,8 +79,8 @@ void computeSift(mySIFT &sift_obj, Mat img_scene, Mat img_color, bool time_on){
 		sift_obj.LoadImage(img_scene);
 		sift_obj.createDoG();
 		sift_obj.detectKeypoints();
-		// sift_obj.filterKeyPoints();
-		sift_obj.filterKeyPoints_Hessian(img_scene, img_color);
+		sift_obj.filterKeyPoints();
+		// sift_obj.filterKeyPoints_Hessian(img_scene, img_color);
 		sift_obj.computeDescriptor();
 	}
 }

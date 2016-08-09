@@ -1,5 +1,15 @@
 #include "../include/sift.h"
 
+int perimeter = 0;
+int biasX = 0;
+vector<int> accuPerimeter;
+vector<int> accuBias;
+vector< Point2f > fixed_corners(4);
+bool detectFlag = false;
+bool newUpdate = false;
+int currentPerimeter;
+deque<int*> biasQueue;
+
 void match_multi(mySIFT& left1, mySIFT& left2, mySIFT& right, string targetFile1, string targetFile2, Mat img_scene)
 {
 	vector< Key_Point >& a1 = left1.keyPoints;
@@ -37,8 +47,8 @@ void match_multi(mySIFT& left1, mySIFT& left2, mySIFT& right, string targetFile1
 		int R = rand() % 256;
 
 		if (min < 0.5 * min2){//good matches
-			double aScaling = (a1[i].layer / 5 == 0) ? 1 : 1.6;
-			double bScaling = (b[index].layer / 5 == 0) ? 1 : 1.6;//ÁY¤p´X­¿ªº¡A­n©ñ¤j¦^¨Ó
+			double aScaling = (a1[i].layer / 5 == 0) ? 1 : SCALE;
+			double bScaling = (b[index].layer / 5 == 0) ? 1 : SCALE;//ÁY¤p´X­¿ªº¡A­n©ñ¤j¦^¨Ó
 			//cout << aScaling << " " << bScaling << "\n";
 			// circle(result, Point(a1[i].col * aScaling, a1[i].row * aScaling), 3, Scalar(255, 0, 0), 1);
 			// circle(result, Point(max(target1.cols, target2.cols) + b[index].col * bScaling, b[index].row * bScaling), 3, Scalar(0, 255, 0), 1);
@@ -73,8 +83,8 @@ void match_multi(mySIFT& left1, mySIFT& left2, mySIFT& right, string targetFile1
         int R = rand() % 256;
 
         if (min < 0.5 * min2){//good matches
-            double aScaling = (a2[i].layer / 5 == 0) ? 1 : 1.6;
-            double bScaling = (b[index].layer / 5 == 0) ? 1 : 1.6;//ÁY¤p´X­¿ªº¡A­n©ñ¤j¦^¨Ó
+            double aScaling = (a2[i].layer / 5 == 0) ? 1 : SCALE;
+            double bScaling = (b[index].layer / 5 == 0) ? 1 : SCALE;//ÁY¤p´X­¿ªº¡A­n©ñ¤j¦^¨Ó
             //cout << aScaling << " " << bScaling << "\n";
             line(result, Point(a2[i].col * aScaling, target1.rows + a2[i].row * aScaling), Point(max(target1.cols, target2.cols) + b[index].col * bScaling, b[index].row * bScaling), Scalar(B, G, R));
             obj2.push_back(Point2f(a2[i].col * aScaling, a2[i].row * aScaling));
@@ -154,16 +164,8 @@ Mat concatMultiImg(Mat& target1, Mat& target2, Mat& scene)
 void match(mySIFT& left, mySIFT& right, string targetFile, Mat img_scene, clock_t s)
 {
 
-    int perimeter = 0;
-    int biasX = 0;
-    vector<int> accuPerimeter;
-    vector<int> accuBias;
-    vector< Point2f > fixed_corners(4);
-    bool detectFlag = false;
-    bool newUpdate = false;
 
-    deque<int*> biasQueue;
-	// cout << "keyPoints (AFTER): " << right.keyPoints.size() << endl << endl;
+	cout << "keyPoints (AFTER): " << right.keyPoints.size() << endl << endl;
 	vector< Key_Point >& a = left.keyPoints;
 	vector< Key_Point >& b = right.keyPoints;
 	
@@ -208,12 +210,12 @@ void match(mySIFT& left, mySIFT& right, string targetFile, Mat img_scene, clock_
 			int aScaleNum = a[i].layer / left.nLayersPerOctave;// == 0) ? 1 : 1.6;
 			double aScaling = 1;
 			for (int k = 0; k < aScaleNum; ++k){
-				aScaling *= 1.6;
+				aScaling *= SCALE;
 			}
 			int bScaleNum = b[index].layer / right.nLayersPerOctave;// == 0) ? 1 : 1.6;//ÁY¤p´X­¿ªº¡A­n©ñ¤j¦^¨Ó
 			double bScaling = 1;
 			for (int k = 0; k < bScaleNum; ++k){
-				bScaling *= 1.6;
+				bScaling *= SCALE;
 			}
 			//cout << aScaling << " " << bScaling << "\n";
 			circle(result, Point(a[i].col * aScaling, a[i].row * aScaling), 3, Scalar(255, 0, 0), 1);
@@ -259,7 +261,7 @@ void match(mySIFT& left, mySIFT& right, string targetFile, Mat img_scene, clock_
     edge[1] = abs(computed_corners[1].y - computed_corners[2].y) + abs(computed_corners[1].x - computed_corners[2].x);
     edge[2] = abs(computed_corners[2].y - computed_corners[3].y) + abs(computed_corners[2].x - computed_corners[3].x);
     edge[3] = abs(computed_corners[3].y - computed_corners[0].y) + abs(computed_corners[3].x - computed_corners[0].x);
-    int currentPerimeter = edge[0] + edge[1] + edge[2] + edge[3];
+    currentPerimeter = edge[0] + edge[1] + edge[2] + edge[3];
     int *currentBias = new int[4];
     currentBias[0] = computed_corners[0].x;
     currentBias[1] = computed_corners[1].x;
@@ -288,6 +290,7 @@ void match(mySIFT& left, mySIFT& right, string targetFile, Mat img_scene, clock_
                 }
             }
         }
+        cout << "accu bias: " << accuBiasDelta << endl;
         if(currentPerimeter < 100 || accuBiasDelta > 400){
             detectFlag = false;
             fixed_corners.clear();
@@ -301,18 +304,21 @@ void match(mySIFT& left, mySIFT& right, string targetFile, Mat img_scene, clock_
             fixed_corners = computed_corners;
         }
     }
+    cout << "peri " << currentPerimeter << endl;
+    // cout << "accubis " << accuBiasDelta << endl;
+    cout << "FXED COR: " << fixed_corners.size() << endl;
     if(fixed_corners.size() != 0){
         //-- Draw lines between the corners (the mapped object in the scene - image_2 )
-        line(result, fixed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
-        line(result, fixed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
-        line(result, fixed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
-        line(result, fixed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
+                line(result, fixed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
+                line(result, fixed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
+                line(result, fixed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
+                line(result, fixed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
     }
     int bias = (fixed_corners[1].x - fixed_corners[0].x)/2 + fixed_corners[0].x;
     if(detectFlag){
         int biasFromCenter = bias - (result.cols - left.blurredImgs[0].cols)/2;
         unsigned char output[DATAGRAM_SIZE];
-        output[0] = CONTROL;
+        output[0] = DETECT;
         if(biasFromCenter < 0){//object is at left
             output[1] = LEFT;
             cout << "LEFT!" << endl;
@@ -326,9 +332,7 @@ void match(mySIFT& left, mySIFT& right, string targetFile, Mat img_scene, clock_
         if(currentPerimeter < 1000){
             output[1] = FORWARD;
             cout << "FORWARD!" << endl;
-            for(int i = 0; i < 2; i++){
-                 transmit(output);
-            }
+            transmit(output);
         }
     }
     imshow("haha", result);

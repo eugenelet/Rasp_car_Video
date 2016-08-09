@@ -14,7 +14,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <cstdlib>
- #include <pigpio.h>
+#include <pigpio.h>
+#include <thread>
+#include <mutex>
 #include "receiver.h"
 #include "transmit.h"
 #include "GPIOClass.h"
@@ -313,7 +315,23 @@ void ripple(unsigned char input){
 	}
 }
 
-
+std::mutex mtxLock;
+void idle_thread(unsigned int *idle_counter){
+	while(1){
+		cout << "SEARCHING..... " << *idle_counter << endl;
+		mtxLock.lock();
+		(*idle_counter)++;
+		if(*idle_counter == 2){
+			*idle_counter = 0;
+			left();
+			usleep(100000);
+			idle();
+		}
+		// cout << *idle_counter << endl;
+		mtxLock.unlock();
+		usleep(1000000);
+	}
+}
 
 
 int requestFlag = 0;
@@ -337,6 +355,9 @@ int main(int argc, char** argv){
 	gpioSetMode(13, PI_OUTPUT);
 	gpioSetMode(2, PI_OUTPUT);
 	gpioSetMode(3, PI_OUTPUT);
+
+	unsigned int idle_counter = 0;
+	thread t(idle_thread, &idle_counter);
 
     while(1){
         receivedPacket = receiver();
@@ -364,12 +385,32 @@ int main(int argc, char** argv){
                         right();
                     }
 					else if(receivedPacket[1] == SIG_INT){
+						pthread_t handler = t.native_handle();
+						pthread_cancel(handler);
+					    gpioTerminate();
+					    
 						close_transmit();
 						close_receiver();
 						cout << "DISCONNECTED..." << endl;
 						usleep(3000000);
 						receiver_init(rcv_PORT);
 			 			transmit_init(IP_ADDR, snd_PORT);
+						if (gpioInitialise() < 0)
+						{
+						  fprintf(stderr, "pigpio initialisation failed\n");
+						  return 1;
+						}
+
+						/* Set GPIO modes */
+						gpioSetMode(19, PI_OUTPUT);
+						gpioSetMode(26, PI_OUTPUT);
+						gpioSetMode(4, PI_OUTPUT);
+						gpioSetMode(17, PI_OUTPUT);
+						gpioSetMode(6, PI_OUTPUT);
+						gpioSetMode(13, PI_OUTPUT);
+						gpioSetMode(2, PI_OUTPUT);
+						gpioSetMode(3, PI_OUTPUT);
+
 					}
 					else if(receivedPacket[1] == SHUTDOWN){
 						system("sudo shutdown now");
@@ -383,6 +424,9 @@ int main(int argc, char** argv){
                     break;  
                 }
             case DETECT:{
+            		mtxLock.lock();
+            		idle_counter = 0;
+            		mtxLock.unlock();
                     if((receivedPacket[1] == FORWARD)){
        		        	forwardPWM();
                     }

@@ -23,7 +23,7 @@ void mySIFT::createDoG()
 			tempSigma = tempSigma / k / k / k / k;
 			Mat src = *(blurredImgs.end() - 4);//blurredImgs[blurredImgs.size() - 3];
 			Mat firstMatInNewOctave;
-			resize(src, firstMatInNewOctave, Size(src.cols / 1.6, src.rows / 1.6));
+			resize(src, firstMatInNewOctave, Size(src.cols / SCALE, src.rows / SCALE));
 			//imshow("hey", firstMatInNewOctave);
 			//waitKey(0);
 			blurredImgs.push_back(firstMatInNewOctave);//±À¶i¤U¤@¼hoctaveªº²Ä¤@±i¹Ï

@@ -36,7 +36,7 @@
 **************************************/
 
 #define CONTROL 0x01
-#define PICTURE 0x02
+#define DETECT  0x02
 #define VIDEO   0x03
 
 /*************************************
@@ -72,7 +72,7 @@
 #define SIFT_ORI_HIST_BINS 36// default number of bins in histogram for orientation assignment
 #define SIFT_ORI_SIG 1.5f// determines gaussian sigma for orientation assignment
 #define SIFT_ORI_RADIUS 3 * SIFT_ORI_SIG// determines the radius of the region used in orientation assignment
-
+#define SCALE 2
 
 using namespace cv;
 using namespace std;
@@ -91,6 +91,7 @@ void computeDxxDxyDyy(Mat& src, Mat& Dxx, Mat& Dxy, Mat& Dyy);
 void match_multi(mySIFT& left1, mySIFT& left2, mySIFT& right, string targetFile1, string targetFile2, Mat img_scene);
 Mat concatMultiImg(Mat& target1, Mat& target2, Mat& scene);
 char getch();
+
 
 class Key_Point{
 public:
