@@ -165,7 +165,7 @@ void match(mySIFT& left, mySIFT& right, string targetFile, Mat img_scene, clock_
 {
 
 
-	cout << "keyPoints (AFTER): " << right.keyPoints.size() << endl << endl;
+	// cout << "keyPoints (AFTER): " << right.keyPoints.size() << endl << endl;
 	vector< Key_Point >& a = left.keyPoints;
 	vector< Key_Point >& b = right.keyPoints;
 	
@@ -290,7 +290,6 @@ void match(mySIFT& left, mySIFT& right, string targetFile, Mat img_scene, clock_
                 }
             }
         }
-        cout << "accu bias: " << accuBiasDelta << endl;
         if(currentPerimeter < 100 || accuBiasDelta > 400){
             detectFlag = false;
             fixed_corners.clear();
@@ -304,9 +303,6 @@ void match(mySIFT& left, mySIFT& right, string targetFile, Mat img_scene, clock_
             fixed_corners = computed_corners;
         }
     }
-    cout << "peri " << currentPerimeter << endl;
-    // cout << "accubis " << accuBiasDelta << endl;
-    cout << "FXED COR: " << fixed_corners.size() << endl;
     if(fixed_corners.size() != 0){
         //-- Draw lines between the corners (the mapped object in the scene - image_2 )
                 line(result, fixed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
