@@ -72,7 +72,7 @@
 #define SIFT_ORI_HIST_BINS 36// default number of bins in histogram for orientation assignment
 #define SIFT_ORI_SIG 1.5f// determines gaussian sigma for orientation assignment
 #define SIFT_ORI_RADIUS 3 * SIFT_ORI_SIG// determines the radius of the region used in orientation assignment
-#define SCALE 2
+#define SCALE 1.6
 #define DOG_DETECT_KPT_SIZE 3
 
 using namespace cv;
@@ -89,10 +89,10 @@ void computeSift(mySIFT &sift_obj, Mat img_scene, Mat img_color, bool time_on);
 void computeSift_left(mySIFT &sift_obj, Mat img_scene, Mat img_color, bool time_on);
 void calculateR(Mat& R, Mat& Dxx, Mat& Dxy, Mat& Dyy);
 void computeDxxDxyDyy(Mat& src, Mat& Dxx, Mat& Dxy, Mat& Dyy);
-void match_multi(mySIFT& left1, mySIFT& left2, mySIFT& right, string targetFile1, string targetFile2, Mat img_scene);
-Mat concatMultiImg(Mat& target1, Mat& target2, Mat& scene);
+void match_multi(mySIFT* left, mySIFT& right, char** targetFile, Mat img_scene, int target_num, int target_pick);
+Mat concatMultiImg(Mat* target, Mat& scene, int& target_num, int& maxCol);
 char getch();
-
+void trackObject(vector<Point2f> &computed_corners, Mat &result, mySIFT &left);
 
 class Key_Point{
 public:

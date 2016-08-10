@@ -1,162 +1,162 @@
 #include "../include/sift.h"
 
-int perimeter = 0;
-int biasX = 0;
-vector<int> accuPerimeter;
-vector<int> accuBias;
-vector< Point2f > fixed_corners(4);
-bool detectFlag = false;
-bool newUpdate = false;
-int currentPerimeter;
-deque<int*> biasQueue;
+int computeRow(Mat* target, int row){
+	int accuRow = 0;
+	for(int i = 0; i < row; i++)
+		accuRow += target[i].rows;
+	return accuRow;
+}
 
-void match_multi(mySIFT& left1, mySIFT& left2, mySIFT& right, string targetFile1, string targetFile2, Mat img_scene)
+int MaxCol(Mat* target, int target_num){
+	int current_max = 0;
+	for(int i = 0; i < target_num; i++)
+		if(target[i].cols > current_max)
+			current_max = target[i].cols;
+	return current_max;
+}
+
+void match_multi(mySIFT* left, mySIFT& right, char** targetFile, Mat img_scene, int target_num, int target_pick)
 {
-	vector< Key_Point >& a1 = left1.keyPoints;
-    vector< Key_Point >& a2 = left2.keyPoints;
+    Mat* target = new Mat[target_num]; // = imread(targetFile1);//§Ú­n±m¦âªº
+	vector< vector<Key_Point> > a;
+	for(int i = 0; i < target_num; i++){
+		target[i] = imread(targetFile[i]);
+		vector<Key_Point>& tmp = left[i].keyPoints;
+		a.push_back(tmp);
+	}
 	vector< Key_Point >& b  = right.keyPoints;
 	
-    Mat target1 = imread(targetFile1);//§Ú­n±m¦âªº
-    Mat target2 = imread(targetFile2);//§Ú­n±m¦âªº
 	Mat find = img_scene;
-	Mat result = concatMultiImg(target1, target2, find);
+	int maxCol = MaxCol(target, target_num);
+	Mat result = concatMultiImg(target, find, target_num, maxCol);
 
-	vector< Point2f > obj1, obj2;
-	vector< Point2f > scene, scene2;
-
-	for (int i = 0; i < a1.size(); ++i){// match target 1
-		int index = -1;//index of minimum distance;
-		double min = INT_MAX;
-		int indexMin2 = -1;
-		double min2 = INT_MAX;
+	// vector< Point2f > obj1, obj2;
+	// vector< Point2f > scene, scene2;
+	vector< vector<Point2f> > obj;
+	vector< vector<Point2f> > scene;
+	for(int i = 0; i < target_num; i++){
+		vector<Point2f> sub_obj;
+		vector<Point2f> sub_scene;
+		obj.push_back(sub_obj);
+		scene.push_back(sub_scene);
+		for(int j = 0; j < a[i].size(); j++){
+			int index = -1;//index of minimum distance;
+			double min = INT_MAX;
+			int indexMin2 = -1;
+			double min2 = INT_MAX;
 		
-		for (int j = 0; j < b.size(); ++j){//¼É¤O¥h±½¨C¤@­Ó¥kÃäªºKey_Point:b[j]
-			double dist = 0;
-			for (int k = 0; k < 32; ++k)
-				dist += (a1[i].descriptor[k] - b[j].descriptor[k]) * (a1[i].descriptor[k] - b[j].descriptor[k]);
-			if (dist < min){//³Ì¤pªº­n³Q¨ú¥N¤F
-				min2 = min;
-				indexMin2 = index;
-				min = dist;
-				index = j;//¥ªÃäi match¨ì¥kÃäindex
+			for (int k = 0; k < b.size(); k++){//¼É¤O¥h±½¨C¤@­Ó¥kÃäªºKey_Point:b[j]
+				double dist = 0;
+				for (int l = 0; l < 32; ++l)
+					dist += (a[i][j].descriptor[l] - b[k].descriptor[l]) * (a[i][j].descriptor[l] - b[k].descriptor[l]);
+				if (dist < min){//³Ì¤pªº­n³Q¨ú¥N¤F
+					min2 = min;
+					indexMin2 = index;
+					min = dist;
+					index = k;//¥ªÃäi match¨ì¥kÃäindex
+				}
 			}
+
+			int B = rand() % 256;
+			int G = rand() % 256;
+			int R = rand() % 256;
+
+			if (min < 0.5 * min2){//good matches
+				int aScaleNum = a[i][j].layer / left[i].nLayersPerOctave;// == 0) ? 1 : 1.6;
+				double aScaling = 1;
+				for (int k = 0; k < aScaleNum; ++k){
+					aScaling *= SCALE;
+				}
+				int bScaleNum = b[index].layer / right.nLayersPerOctave;// == 0) ? 1 : 1.6;//ÁY¤p´X­¿ªº¡A­n©ñ¤j¦^¨Ó
+				double bScaling = 1;
+				for (int k = 0; k < bScaleNum; ++k){
+					bScaling *= SCALE;
+				}
+				// circle(result, Point(a1[i].col * aScaling, a1[i].row * aScaling), 3, Scalar(255, 0, 0), 1);
+				// circle(result, Point(max(target1.cols, target2.cols) + b[index].col * bScaling, b[index].row * bScaling), 3, Scalar(0, 255, 0), 1);
+				if(i == target_pick)
+					line(result, Point(a[i][j].col * aScaling, computeRow(target, i) + a[i][j].row * aScaling), Point(maxCol + b[index].col * bScaling, b[index].row * bScaling), Scalar(B, G, R));
+				obj.back().push_back(Point2f(a[i][j].col * aScaling, a[i][j].row * aScaling));
+				scene.back().push_back(Point2f(b[index].col * bScaling, b[index].row * bScaling));
+	        }
 		}
-
-		int B = rand() % 256;
-		int G = rand() % 256;
-		int R = rand() % 256;
-
-		if (min < 0.5 * min2){//good matches
-			double aScaling = (a1[i].layer / 5 == 0) ? 1 : SCALE;
-			double bScaling = (b[index].layer / 5 == 0) ? 1 : SCALE;//ÁY¤p´X­¿ªº¡A­n©ñ¤j¦^¨Ó
-			//cout << aScaling << " " << bScaling << "\n";
-			// circle(result, Point(a1[i].col * aScaling, a1[i].row * aScaling), 3, Scalar(255, 0, 0), 1);
-			// circle(result, Point(max(target1.cols, target2.cols) + b[index].col * bScaling, b[index].row * bScaling), 3, Scalar(0, 255, 0), 1);
-
-			line(result, Point(a1[i].col * aScaling, a1[i].row * aScaling), Point(max(target1.cols, target2.cols) + b[index].col * bScaling, b[index].row * bScaling), Scalar(B, G, R));
-			obj1.push_back(Point2f(a1[i].col * aScaling, a1[i].row * aScaling));
-			scene.push_back(Point2f(b[index].col * bScaling, b[index].row * bScaling));
-        }
 	}
-	//µ²§ômatch
-
-    for (int i = 0; i < a2.size(); ++i){// match target 2
-        int index = -1;//index of minimum distance;
-        double min = INT_MAX;
-        int indexMin2 = -1;
-        double min2 = INT_MAX;
-        
-        for (int j = 0; j < b.size(); ++j){//¼É¤O¥h±½¨C¤@­Ó¥kÃäªºKey_Point:b[j]
-            double dist = 0;
-            for (int k = 0; k < 32; ++k)
-                dist += (a2[i].descriptor[k] - b[j].descriptor[k]) * (a2[i].descriptor[k] - b[j].descriptor[k]);
-            if (dist < min){//³Ì¤pªº­n³Q¨ú¥N¤F
-                min2 = min;
-                indexMin2 = index;
-                min = dist;
-                index = j;//¥ªÃäi match¨ì¥kÃäindex
-            }
-        }
-
-        int B = rand() % 256;
-        int G = rand() % 256;
-        int R = rand() % 256;
-
-        if (min < 0.5 * min2){//good matches
-            double aScaling = (a2[i].layer / 5 == 0) ? 1 : SCALE;
-            double bScaling = (b[index].layer / 5 == 0) ? 1 : SCALE;//ÁY¤p´X­¿ªº¡A­n©ñ¤j¦^¨Ó
-            //cout << aScaling << " " << bScaling << "\n";
-            line(result, Point(a2[i].col * aScaling, target1.rows + a2[i].row * aScaling), Point(max(target1.cols, target2.cols) + b[index].col * bScaling, b[index].row * bScaling), Scalar(B, G, R));
-            obj2.push_back(Point2f(a2[i].col * aScaling, a2[i].row * aScaling));
-            scene2.push_back(Point2f(b[index].col * bScaling, b[index].row * bScaling));
-        }
-    }
 
 
-	if (obj1.empty() || scene.empty() || obj2.empty())
-		return;
-		//system("pause");
+	Mat* H = new Mat[target_num];
+	if(!scene.empty())
+		for(int i = 0; i < target_num; i++)
+			if(!obj[i].empty() && obj[i].size()>3 && scene[i].size()>3)
+				H[i] = findHomography(obj[i], scene[i], CV_RANSAC);
 
-	Mat H = findHomography(obj1, scene, CV_RANSAC);
-    Mat H2 = findHomography(obj2, scene2, CV_RANSAC);
 
-	vector< Point2f > obj_corners(4);
-	obj_corners[0] = cvPoint(0, 0);
-	obj_corners[1] = cvPoint(left1.blurredImgs[0].cols, 0);
-	obj_corners[2] = cvPoint(left1.blurredImgs[0].cols, left1.blurredImgs[0].rows);
-	obj_corners[3] = cvPoint(0, left1.blurredImgs[0].rows);
-	
-    vector< Point2f > obj_corners2(4);
-    obj_corners2[0] = cvPoint(0, 0);
-    obj_corners2[1] = cvPoint(left2.blurredImgs[0].cols, 0);
-    obj_corners2[2] = cvPoint(left2.blurredImgs[0].cols, left2.blurredImgs[0].rows);
-    obj_corners2[3] = cvPoint(0, left2.blurredImgs[0].rows);
-    
-	vector< Point2f > computed_corners(4);
-	for (int i = 0; i < 4; ++i)
-		computed_corners[i] = MatMulti(H, obj_corners[i]);//¦Û¤vºâ
+	vector< vector<Point2f> > obj_corners;
+	for(int i = 0; i < target_num; i++){
+		vector< Point2f > obj_corners_sub(4);
+		obj_corners_sub[0] = cvPoint(0, 0);
+		obj_corners_sub[1] = cvPoint(left[i].blurredImgs[0].cols, 0);
+		obj_corners_sub[2] = cvPoint(left[i].blurredImgs[0].cols, left[i].blurredImgs[0].rows);
+		obj_corners_sub[3] = cvPoint(0, left[i].blurredImgs[0].rows);
+		obj_corners.push_back(obj_corners_sub);
+	}
 
-    vector< Point2f > computed_corners2(4);
-    for (int i = 0; i < 4; ++i)
-        computed_corners2[i] = MatMulti(H2, obj_corners2[i]);//¦Û¤vºâ
+	vector< vector<Point2f> > computed_corners;
+	for(int i = 0; i < target_num; i++){
+		vector< Point2f > computed_corners_sub(4);
+		if(!H[i].empty()){
+			for (int j = 0; j < 4; j++)
+				computed_corners_sub[j] = MatMulti(H[i], obj_corners[i][j]);//¦Û¤vºâ
+			computed_corners.push_back(computed_corners_sub);
+		}
+		else{
+			for (int j = 0; j < 4; j++)
+				computed_corners_sub[j] = cvPoint(0,0);			
+			computed_corners.push_back(computed_corners_sub);
+		}
+	}
 
+    /////
     //int target_cols = max(target1.cols, target2.cols);
-    Point2f target_offset = cvPoint(max(target1.cols, target2.cols), 0);
-    line(result, computed_corners[0] + target_offset, computed_corners[1] + target_offset, Scalar(255, 0, 255), 4);
-    line(result, computed_corners[1] + target_offset, computed_corners[2] + target_offset, Scalar(255, 0, 255), 4);
-    line(result, computed_corners[2] + target_offset, computed_corners[3] + target_offset, Scalar(255, 0, 255), 4);
-    line(result, computed_corners[3] + target_offset, computed_corners[0] + target_offset, Scalar(255, 0, 255), 4);
-
-
-    line(result, computed_corners2[0] + target_offset, computed_corners2[1] + target_offset, Scalar(0, 255, 255), 4);
-    line(result, computed_corners2[1] + target_offset, computed_corners2[2] + target_offset, Scalar(0, 255, 255), 4);
-    line(result, computed_corners2[2] + target_offset, computed_corners2[3] + target_offset, Scalar(0, 255, 255), 4);
-    line(result, computed_corners2[3] + target_offset, computed_corners2[0] + target_offset, Scalar(0, 255, 255), 4);
+    Point2f target_offset = cvPoint(maxCol, 0);
+    for(int i = 0; i < target_num; i++){
+    	// cout << computed_corners[i][0].x << " " << computed_corners[i][0].y << endl;
+    	if(i == target_pick)
+    		trackObject(computed_corners[i], result, left[i]);
+    	else{
+		    line(result, computed_corners[i][0] + target_offset, computed_corners[i][1] + target_offset, Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);
+		    line(result, computed_corners[i][1] + target_offset, computed_corners[i][2] + target_offset, Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);
+		    line(result, computed_corners[i][2] + target_offset, computed_corners[i][3] + target_offset, Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);
+		    line(result, computed_corners[i][3] + target_offset, computed_corners[i][0] + target_offset, Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);		
+    	}
+    }
 
     imshow("haha", result);
 	// imwrite("result.jpg", result);
 	waitKey(1);
 }
 
+int RowSum(Mat* target, int& target_num){
+	int accuSum = 0;
+	for(int i = 0; i < target_num; i++)
+		accuSum += target[i].rows;
+	return accuSum;
+}
 
-
-Mat concatMultiImg(Mat& target1, Mat& target2, Mat& scene)
+Mat concatMultiImg(Mat* target, Mat& scene, int& target_num, int& maxCol)
 {   
     //cout << i1.type();
-    Mat concat_out(max(target1.rows + target2.rows, scene.rows), max(target1.cols, target2.cols) + scene.cols, target1.type(), Scalar(0, 0, 0));
+    int rowSum = RowSum(target, target_num);
+    Mat concat_out(max(rowSum, scene.rows), maxCol + scene.cols, target[0].type(), Scalar(0, 0, 0));
 
-    for (int row = 0; row < concat_out.rows; ++row)
-        for (int col = 0; col < concat_out.cols; ++col){
-            if(col < max(target1.cols, target2.cols)){
-                if(row<target1.rows && col<target1.cols) // target 1
-                    concat_out.at<Vec3b>(row, col) = target1.at<Vec3b>(row, col);    
-                else if(row<(target1.rows + target2.rows) && col<target2.cols ) // target 2
-                    concat_out.at<Vec3b>(row, col) = target2.at<Vec3b>(row - target1.rows, col);    
+    for(int i = 0; i < target_num; i++)
+    	for(int row = 0; row < target[i].rows; row++)
+    		for(int col = 0; col < target[i].cols; col++)
+    			concat_out.at<Vec3b>(row + computeRow(target, i), col) = target[i].at<Vec3b>(row, col);
 
-            }
-            else if(row<scene.rows)
-                concat_out.at<Vec3b>(row, col) = scene.at<Vec3b>(row, col - max(target1.cols, target2.cols));
-        }
+    for(int row = 0; row < scene.rows; row++)
+    	for(int col = 0; col < scene.cols; col++)
+    		concat_out.at<Vec3b>(row, col + maxCol) = scene.at<Vec3b>(row, col);
+
     return concat_out;
 }
 
@@ -256,85 +256,13 @@ void match(mySIFT& left, mySIFT& right, string targetFile, Mat img_scene, clock_
 	for (int i = 0; i < 4; ++i)
 		computed_corners[i] = MatMulti(H, obj_corners[i]);//¦Û¤vºâ
 
-	int edge[4];
-    edge[0] = abs(computed_corners[0].y - computed_corners[1].y) + abs(computed_corners[0].x - computed_corners[1].x);
-    edge[1] = abs(computed_corners[1].y - computed_corners[2].y) + abs(computed_corners[1].x - computed_corners[2].x);
-    edge[2] = abs(computed_corners[2].y - computed_corners[3].y) + abs(computed_corners[2].x - computed_corners[3].x);
-    edge[3] = abs(computed_corners[3].y - computed_corners[0].y) + abs(computed_corners[3].x - computed_corners[0].x);
-    currentPerimeter = edge[0] + edge[1] + edge[2] + edge[3];
-    int *currentBias = new int[4];
-    currentBias[0] = computed_corners[0].x;
-    currentBias[1] = computed_corners[1].x;
-    currentBias[2] = computed_corners[2].x;
-    currentBias[3] = computed_corners[3].x;
-    
-    //bias pipeline
-    if(biasQueue.size() != 3){
-        biasQueue.push_back(currentBias);
-    }
-    else{
-        int* toDelete = biasQueue.front();
-        delete toDelete;
-        biasQueue.pop_front();
-        biasQueue.push_back(currentBias);
-        int biasDelta[4];
-        int accuBiasDelta = 0;
-        //computer difference between every 2 frames
-        for(int i = 0; i < biasQueue.size(); i++){
-            if(i == 0){
-                continue;
-            }
-            else{
-                for(int j = 0 ; j < 4; j++){
-                    accuBiasDelta += abs(biasQueue.at(i)[j] - biasQueue.at(i - 1)[j]);
-                }
-            }
-        }
-        if(currentPerimeter < 100 || accuBiasDelta > 400){
-            detectFlag = false;
-            fixed_corners.clear();
-            line(result, computed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), computed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 0, 255), 4);
-            line(result, computed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), computed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 0, 255), 4);
-            line(result, computed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), computed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 0, 255), 4);
-            line(result, computed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), computed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 0, 255), 4);
-        }
-        else{//update corners
-            detectFlag = true;
-            fixed_corners = computed_corners;
-        }
-    }
-    if(fixed_corners.size() != 0){
-        //-- Draw lines between the corners (the mapped object in the scene - image_2 )
-                line(result, fixed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
-                line(result, fixed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
-                line(result, fixed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
-                line(result, fixed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
-    }
-    int bias = (fixed_corners[1].x - fixed_corners[0].x)/2 + fixed_corners[0].x;
-    if(detectFlag){
-        int biasFromCenter = bias - (result.cols - left.blurredImgs[0].cols)/2;
-        unsigned char output[DATAGRAM_SIZE];
-        output[0] = DETECT;
-        if(biasFromCenter < 0){//object is at left
-            output[1] = LEFT;
-            cout << "LEFT!" << endl;
-            transmit(output);
-        }
-        else if(biasFromCenter > 0){//object is at right
-            output[1] = RIGHT;
-            cout << "RIGHT!" << endl;
-            transmit(output);
-        }
-        if(currentPerimeter < 1000){
-            output[1] = FORWARD;
-            cout << "FORWARD!" << endl;
-            transmit(output);
-        }
-    }
+	trackObject(computed_corners, result, left);
     imshow("haha", result);
     // imwrite("result.jpg", result);
     waitKey(1);
 }
+
+
 
 Point2f MatMulti(Mat matrix, Point2f point)//¬Ý¬Ý¸òsource code¤@¤£¤@¼Ë
 {

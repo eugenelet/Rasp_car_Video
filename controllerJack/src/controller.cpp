@@ -130,7 +130,7 @@ void task(VideoCapture* cap, Mat* frame){
 	}
 }
 
-/////////
+
 
 int main(int argc, char* argv[])
 {
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
     //vcap.grab();
     thread t(task, &vcap, &frame);
 
-
+    ///////////////////////////////////////////////////////////////////////////////////////////
     srand(time(NULL));
     bool time_on = false;
     bool multi_on = false;
@@ -183,85 +183,70 @@ int main(int argc, char* argv[])
                 return 0;
             }
         }
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
     clock_t start, end;
-    if (1){
-        mySIFT haha[2];
-        haha[0] = mySIFT(1.414, 1.414, 3);//sigma k
-        haha[1] = mySIFT(1.414, 1.414, 3);//sigma k
-        string targetFile = "target.jpg";
-        string targetFile2 = "target2.jpg";
-        Mat target = imread(targetFile, CV_LOAD_IMAGE_GRAYSCALE);
-        Mat target2 = imread(targetFile2, CV_LOAD_IMAGE_GRAYSCALE);
-        computeSift(haha[0], target, imread(targetFile),time_on);
-        computeSift(haha[1], target2, imread(targetFile),time_on);
-        // haha.filterKeyPoints_Hessian(target, imread(targetFile));
-        //haha.drawKeyPoints(targetFile);
-        // VideoCapture cap(0);
-        // cv::VideoCapture vcap;
-        // vcap.set(CV_CAP_PROP_BUFFERSIZE, 3);
-        // cv::Mat frame;
-
-    //    const std::string videoStreamAddress = "http://192.168.0.100:8090/?action=stream"; 
-        // const std::string videoStreamAddress = "http://192.168.0.100:8080/stream/video.mjpeg"; 
-        /* it may be an address of an mjpeg stream, 
-        e.g. "http://user:pass@cam_address:8081/cgi/mjpg/mjpg.cgi?.mjpg" */
-
-        //open the video stream and make sure it's opened
-        // if(!vcap.open(videoStreamAddress)) {
-        //     std::cout << "Error opening video stream or file" << std::endl;
-        //     return -1; 
-        // }  
-
-        // vcap>>frame;
-        // //vcap.grab();
-        // thread t(task, &vcap, &frame);
-
-
-        while (1){
-            Mat img_scene;
-
-            if(sigIntFlag){
-                pthread_cancel(getch_t);
-                return 0;
-            }
-
-            if(!frame.empty()){
-                mtxCam.lock();
-                frame.copyTo(img_scene);
-                mtxCam.unlock();
-            }
-
-            clock_t s;
-            s = clock();
-            // Mat img_scene;
-            // cap >> img_scene;
-            clock_t start, end;
-
-            mySIFT hoho(1.414, 1.414, 1);//sigma k
-            //hoho.LoadImage(imageName2);
-            Mat imgScene;
-            cvtColor(img_scene, imgScene, CV_BGR2GRAY);
-            computeSift(hoho, imgScene, img_scene, time_on);
-            //start = clock();
-            if(multi_on)
-                match_multi(haha[0], haha[1], hoho, targetFile, targetFile2, img_scene);
-            else
-                match(haha[0], hoho, targetFile, img_scene, s);
-            //end = clock();
-            //cout << "Match : " << (double)(end - s) / CLOCKS_PER_SEC << "\n";
-
+    int target_num = 3;
+    char** targetFile = new char*[target_num];//"target.jpg";
+    mySIFT* sift_target = new mySIFT[target_num];
+    char* str1 = "target/target";
+    char* str2 = ".jpg";
+    Mat* target = new Mat[target_num];
+    char buffer[10];
+    if(multi_on){
+        for(int i = 0; i < target_num; i++){
+            sift_target[i] = mySIFT(1.414, 1.414, 3);//sigma k
+            sprintf(buffer, "%d", i);
+            char * tmp = (char *) malloc(1 + strlen(str1) + strlen(buffer) + strlen(str2) );
+            strcpy(tmp, str1);
+            strcat(tmp, buffer);
+            strcat(tmp, str2);
+            targetFile[i] = tmp;
+            target[i] = imread(targetFile[i], CV_LOAD_IMAGE_GRAYSCALE);
+            computeSift(sift_target[i], target[i], imread(targetFile[i]), time_on);
         }
-        
     }
-    else{//´ú¸Õ¦ê±µ2±i¹Ï
-        Mat i1 = imread("jijin.jpg");// , CV_LOsAD_IMAGE_GRAYSCALE);
-        Mat i2 = imread("gg.jpg");// , CV_LOAD_IMAGE_GRAYSCALE);
-        Mat i3 = concat2Img(i1, i2);
-        Mat smalli1;
-        resize(i1, smalli1, Size(i1.cols / 2, i1.rows / 2));
-        imshow("??", smalli1);
-        imshow("!!", i1);
-        waitKey(0);
+    else{
+        sift_target[0] = mySIFT(1.414, 1.414, 3);//sigma k
+        targetFile[0] = "target/target.jpg";
+        target[0] = imread(targetFile[0], CV_LOAD_IMAGE_GRAYSCALE);
+        computeSift(sift_target[0], target[0], imread(targetFile[0]), time_on);
+    }
+
+    while (1){
+        Mat img_scene;
+
+        if(sigIntFlag){
+            pthread_cancel(getch_t);
+            return 0;
+        }
+
+        if(!frame.empty()){
+            mtxCam.lock();
+            frame.copyTo(img_scene);
+            mtxCam.unlock();
+        }
+
+        clock_t s;
+        s = clock();
+        // Mat img_scene;
+        // cap >> img_scene;
+        clock_t start, end;
+
+        mySIFT hoho(1.414, 1.414, 1);//sigma k
+        //hoho.LoadImage(imageName2);
+        Mat imgScene;
+        cvtColor(img_scene, imgScene, CV_BGR2GRAY);
+        computeSift(hoho, imgScene, img_scene, time_on);
+        //start = clock();
+        if(multi_on)
+            match_multi(sift_target, hoho, targetFile, img_scene, target_num, 0);
+        else
+            match(sift_target[0], hoho, targetFile[0], img_scene, s);
+
+        //end = clock();
+        //cout << "Match : " << (double)(end - s) / CLOCKS_PER_SEC << "\n";
+
     }
 
     //system("pause");
