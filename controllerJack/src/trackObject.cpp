@@ -10,7 +10,7 @@ bool newUpdate = false;
 int currentPerimeter;
 deque<int*> biasQueue;
 
-void trackObject(vector<Point2f> &computed_corners, Mat &result, mySIFT &left){
+void trackObject(vector<Point2f> &computed_corners, Mat &result, mySIFT &left, mySIFT &right, int &maxCol){
 
 	int edge[4];
     edge[0] = abs(computed_corners[0].y - computed_corners[1].y) + abs(computed_corners[0].x - computed_corners[1].x);
@@ -49,10 +49,10 @@ void trackObject(vector<Point2f> &computed_corners, Mat &result, mySIFT &left){
         if(currentPerimeter < 100 || accuBiasDelta > 400){
             detectFlag = false;
             fixed_corners.clear();
-            line(result, computed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), computed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 0, 255), 4);
-            line(result, computed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), computed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 0, 255), 4);
-            line(result, computed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), computed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 0, 255), 4);
-            line(result, computed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), computed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 0, 255), 4);
+            line(result, computed_corners[0], computed_corners[1], Scalar(0, 0, 255), 4);
+            line(result, computed_corners[1], computed_corners[2], Scalar(0, 0, 255), 4);
+            line(result, computed_corners[2], computed_corners[3], Scalar(0, 0, 255), 4);
+            line(result, computed_corners[3], computed_corners[0], Scalar(0, 0, 255), 4);
         }
         else{//update corners
             detectFlag = true;
@@ -61,14 +61,14 @@ void trackObject(vector<Point2f> &computed_corners, Mat &result, mySIFT &left){
     }
     if(fixed_corners.size() != 0){
         //-- Draw lines between the corners (the mapped object in the scene - image_2 )
-                line(result, fixed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
-                line(result, fixed_corners[1] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
-                line(result, fixed_corners[2] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
-                line(result, fixed_corners[3] + Point2f(left.blurredImgs[0].cols, 0), fixed_corners[0] + Point2f(left.blurredImgs[0].cols, 0), Scalar(0, 255, 0), 4);
+                line(result, fixed_corners[0], fixed_corners[1], Scalar(0, 255, 0), 4);
+                line(result, fixed_corners[3], fixed_corners[0], Scalar(0, 255, 0), 4);
+                line(result, fixed_corners[1], fixed_corners[2], Scalar(0, 255, 0), 4);
+                line(result, fixed_corners[2], fixed_corners[3], Scalar(0, 255, 0), 4);
     }
     int bias = (fixed_corners[1].x - fixed_corners[0].x)/2 + fixed_corners[0].x;
     if(detectFlag){
-        int biasFromCenter = bias - (result.cols - left.blurredImgs[0].cols)/2;
+        int biasFromCenter = bias - (maxCol + right.blurredImgs[0].cols/2);
         unsigned char output[DATAGRAM_SIZE];
         output[0] = DETECT;
         if(biasFromCenter < 0){//object is at left

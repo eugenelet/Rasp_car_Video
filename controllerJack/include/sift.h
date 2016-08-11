@@ -92,7 +92,7 @@ void computeDxxDxyDyy(Mat& src, Mat& Dxx, Mat& Dxy, Mat& Dyy);
 void match_multi(mySIFT* left, mySIFT& right, char** targetFile, Mat img_scene, int target_num, int target_pick);
 Mat concatMultiImg(Mat* target, Mat& scene, int& target_num, int& maxCol, int& target_pick);
 char getch();
-void trackObject(vector<Point2f> &computed_corners, Mat &result, mySIFT &left);
+void trackObject(vector<Point2f> &computed_corners, Mat &result, mySIFT &left, mySIFT &right, int &maxCol);
 
 class Key_Point{
 public:

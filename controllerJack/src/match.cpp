@@ -100,12 +100,14 @@ void match_multi(mySIFT* left, mySIFT& right, char** targetFile, Mat img_scene, 
 		obj_corners.push_back(obj_corners_sub);
 	}
 
+    Point2f target_offset = cvPoint(maxCol, 0);
+
 	vector< vector<Point2f> > computed_corners;
 	for(int i = 0; i < target_num; i++){
 		vector< Point2f > computed_corners_sub(4);
 		if(!H[i].empty()){
 			for (int j = 0; j < 4; j++)
-				computed_corners_sub[j] = MatMulti(H[i], obj_corners[i][j]);//¦Û¤vºâ
+				computed_corners_sub[j] = MatMulti(H[i], obj_corners[i][j]) + target_offset;//¦Û¤vºâ
 			computed_corners.push_back(computed_corners_sub);
 		}
 		else{
@@ -117,16 +119,15 @@ void match_multi(mySIFT* left, mySIFT& right, char** targetFile, Mat img_scene, 
 
     /////
     //int target_cols = max(target1.cols, target2.cols);
-    Point2f target_offset = cvPoint(maxCol, 0);
     for(int i = 0; i < target_num; i++){
     	// cout << computed_corners[i][0].x << " " << computed_corners[i][0].y << endl;
     	if(i == target_pick)
-    		trackObject(computed_corners[i], result, left[i]);
+    		trackObject(computed_corners[i] , result, left[i], right, maxCol);
     	else{
-		    line(result, computed_corners[i][0] + target_offset, computed_corners[i][1] + target_offset, Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);
-		    line(result, computed_corners[i][1] + target_offset, computed_corners[i][2] + target_offset, Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);
-		    line(result, computed_corners[i][2] + target_offset, computed_corners[i][3] + target_offset, Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);
-		    line(result, computed_corners[i][3] + target_offset, computed_corners[i][0] + target_offset, Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);		
+		    line(result, computed_corners[i][0], computed_corners[i][1], Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);
+		    line(result, computed_corners[i][1], computed_corners[i][2], Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);
+		    line(result, computed_corners[i][2], computed_corners[i][3], Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);
+		    line(result, computed_corners[i][3], computed_corners[i][0], Scalar((i*67)%256, (i*31)%256, (i*97)%256), 4);		
     	}
     }
 
@@ -256,9 +257,9 @@ void match(mySIFT& left, mySIFT& right, string targetFile, Mat img_scene, clock_
 	vector< Point2f > scene_corners(4);
 	vector< Point2f > computed_corners(4);
 	for (int i = 0; i < 4; ++i)
-		computed_corners[i] = MatMulti(H, obj_corners[i]);//¦Û¤vºâ
+		computed_corners[i] = MatMulti(H, obj_corners[i]) + Point2f(left.blurredImgs[0].cols, 0);//¦Û¤vºâ
 
-	trackObject(computed_corners, result, left);
+	trackObject(computed_corners, result, left, right, left.blurredImgs[0].cols);
     imshow("haha", result);
     // imwrite("result.jpg", result);
     waitKey(1);

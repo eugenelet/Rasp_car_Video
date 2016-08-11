@@ -177,10 +177,13 @@ void forwardPWM(){
 	gpioPWM(6 , 220);
 	gpioPWM(2 , 220);
 	usleep(1000);*/
-	gpioPWM(19, 110);
-	gpioPWM(4 , 110);
-	gpioPWM(6 , 110);
-	gpioPWM(2 , 110);
+	gpioPWM(19, 180);
+	gpioPWM(4 , 180);
+	gpioPWM(6 , 180);
+	gpioPWM(2 , 180);
+	usleep(400000);
+
+	/*
 	usleep(20000);
 	gpioPWM(19, 150);
 	gpioPWM(4 , 150);
@@ -190,7 +193,7 @@ void forwardPWM(){
 	gpioPWM(19, 200);
 	gpioPWM(4 , 200);
 	gpioPWM(6 , 200);
-	gpioPWM(2 , 200);
+	gpioPWM(2 , 200);*/
 	transmit(output);
 }
 
@@ -228,7 +231,7 @@ void leftPWM(){
 	gpioPWM(26, 130);
 	gpioPWM(4 , 130);
 	gpioPWM(13, 130);
-	gpioPWM(2 , 130);
+	gpioPWM(2 , 130);/*
 	usleep(10000);
 	gpioPWM(26, 150);
 	gpioPWM(4 , 150);
@@ -238,7 +241,7 @@ void leftPWM(){
 	gpioPWM(26, 200);
 	gpioPWM(4 , 200);
 	gpioPWM(13, 200);
-	gpioPWM(2 , 200);
+	gpioPWM(2 , 200);*/
 
 	transmit(output);
 }
@@ -253,7 +256,7 @@ void rightPWM(){
 	gpioPWM(19, 130);
 	gpioPWM(17, 130);
 	gpioPWM(6 , 130);
-	gpioPWM(3 , 130);
+	gpioPWM(3 , 130);/*
 	usleep(10000);
 	gpioPWM(19, 150);
 	gpioPWM(17, 150);
@@ -263,7 +266,7 @@ void rightPWM(){
 	gpioPWM(19, 200);
 	gpioPWM(17, 200);
 	gpioPWM(6 , 200);
-	gpioPWM(3 , 200);
+	gpioPWM(3 , 200);*/
 
 	transmit(output);
 }
@@ -321,10 +324,10 @@ void idle_thread(unsigned int *idle_counter){
 		cout << "SEARCHING..... " << *idle_counter << endl;
 		mtxLock.lock();
 		(*idle_counter)++;
-		if(*idle_counter == 2){
+		if(*idle_counter == 3){
 			*idle_counter = 0;
 			left();
-			usleep(100000);
+			usleep(150000);
 			idle();
 		}
 		// cout << *idle_counter << endl;
@@ -372,6 +375,9 @@ int main(int argc, char** argv){
 
         switch(opcode){
             case CONTROL:{
+            		mtxLock.lock();
+            		idle_counter = 0;
+            		mtxLock.unlock();
                     if((receivedPacket[1] == FORWARD)){
        		        	forward();
                     }
