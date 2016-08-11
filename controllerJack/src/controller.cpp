@@ -149,21 +149,63 @@ void task(VideoCapture* cap, Mat* frame){
 	}
 }
 
+int listdir(char *dir, vector<char*>& content, int* target_num) {
+    *target_num = 0;
+    struct dirent *dp;
+    DIR *fd;
+
+    if ((fd = opendir(dir)) == NULL) {
+        fprintf(stderr, "listdir: can't open %s\n", dir);
+        return 0;
+    }
+    while ((dp = readdir(fd)) != NULL) {
+        if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
+            continue;    /* skip self and parent */
+        char * tmp = (char *) malloc(1 + strlen(dir) + 1 +strlen(dp->d_name));
+        strcpy(tmp, dir);
+        strcat(tmp, "/");            
+        strcat(tmp, dp->d_name);            
+        content.push_back(tmp);
+        printf("%d %s/%s\n",*target_num, dir, dp->d_name);
+        (*target_num)++;
+    }
+    cout << "Total Files: " << *target_num << endl;
+    closedir(fd);
+}
 
 
 int main(int argc, char* argv[])
 {
+    srand(time(NULL));
+    bool time_on = false;
+    bool multi_on = false;
+    if (argc > 1)
+        for(int i = 1; i < argc; i++){
+            if(strcmp(argv[i], "time") == 0)
+                time_on = true; 
+            if(strcmp(argv[i], "multi") == 0)
+                multi_on = true;    
+            if(strcmp(argv[i], "-h") == 0){
+                cout << "time: Measure time." << endl;
+                cout << "multi: Multi target." << endl;
+                return 0;
+            }
+        }
+
+    vector<char*> dirContent;
     
     int* target_num = new int;
     int* target_pick = new int;
-    *target_num = 3;
+    if(multi_on)
+        listdir("target", dirContent, target_num);
+    else
+        *target_num = 1;
     *target_pick = 0;
+
     target_choice_info *targetChoiceInfo = new target_choice_info;
     targetChoiceInfo->target_num = target_num;
     targetChoiceInfo->target_pick = target_pick;
-
     pthread_t  getch_t, video_t;
-
 
     transmit_init(IP_ADDR, snd_PORT);  
     receiver_init(rcv_PORT); 
@@ -194,25 +236,12 @@ int main(int argc, char* argv[])
     thread t(task, &vcap, &frame);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    srand(time(NULL));
-    bool time_on = false;
-    bool multi_on = false;
-    if (argc > 1)
-        for(int i = 1; i < argc; i++){
-            if(strcmp(argv[i], "time") == 0)
-                time_on = true; 
-            if(strcmp(argv[i], "multi") == 0)
-                multi_on = true;    
-            if(strcmp(argv[i], "-h") == 0){
-                cout << "time: Measure time." << endl;
-                cout << "multi: Multi target." << endl;
-                return 0;
-            }
-        }
+    
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     clock_t start, end;
-    char** targetFile = new char*[*target_num];//"target.jpg";
+    // char** targetFile = new char*[*target_num];//"target.jpg";
+    char* targetFile;
     mySIFT* sift_target = new mySIFT[*target_num];
     char* str1 = "target/target";
     char* str2 = ".jpg";
@@ -221,21 +250,21 @@ int main(int argc, char* argv[])
     if(multi_on){
         for(int i = 0; i < *target_num; i++){
             sift_target[i] = mySIFT(1.414, 1.414, 3);//sigma k
-            sprintf(buffer, "%d", i);
-            char * tmp = (char *) malloc(1 + strlen(str1) + strlen(buffer) + strlen(str2) );
-            strcpy(tmp, str1);
-            strcat(tmp, buffer);
-            strcat(tmp, str2);
-            targetFile[i] = tmp;
-            target[i] = imread(targetFile[i], CV_LOAD_IMAGE_GRAYSCALE);
-            computeSift(sift_target[i], target[i], imread(targetFile[i]), time_on);
+            // sprintf(buffer, "%d", i);
+            // char * tmp = (char *) malloc(1 + strlen(str1) + strlen(buffer) + strlen(str2) );
+            // strcpy(tmp, str1);
+            // strcat(tmp, buffer);
+            // strcat(tmp, str2);
+            // targetFile[i] = tmp;
+            target[i] = imread(dirContent[i], CV_LOAD_IMAGE_GRAYSCALE);
+            computeSift(sift_target[i], target[i], imread(dirContent[i]), time_on);
         }
     }
     else{
         sift_target[0] = mySIFT(1.414, 1.414, 3);//sigma k
-        targetFile[0] = "target/target.jpg";
-        target[0] = imread(targetFile[0], CV_LOAD_IMAGE_GRAYSCALE);
-        computeSift(sift_target[0], target[0], imread(targetFile[0]), time_on);
+        targetFile = "target.jpg";
+        target[0] = imread(targetFile, CV_LOAD_IMAGE_GRAYSCALE);
+        computeSift(sift_target[0], target[0], imread(targetFile), time_on);
     }
 
     while (1){
@@ -266,11 +295,11 @@ int main(int argc, char* argv[])
         //start = clock();
         if(multi_on){
             pthread_mutex_lock(&target_mutex);
-            match_multi(sift_target, hoho, targetFile, img_scene, *target_num, *target_pick);
+            match_multi(sift_target, hoho, dirContent, img_scene, *target_num, *target_pick);
             pthread_mutex_unlock(&target_mutex);
         }
         else
-            match(sift_target[0], hoho, targetFile[0], img_scene, s);
+            match(sift_target[0], hoho, targetFile, img_scene, s);
 
         //end = clock();
         //cout << "Match : " << (double)(end - s) / CLOCKS_PER_SEC << "\n";

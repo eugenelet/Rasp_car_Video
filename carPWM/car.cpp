@@ -181,7 +181,7 @@ void forwardPWM(){
 	gpioPWM(4 , 180);
 	gpioPWM(6 , 180);
 	gpioPWM(2 , 180);
-	usleep(400000);
+	usleep(300000);
 
 	/*
 	usleep(20000);
@@ -231,7 +231,10 @@ void leftPWM(){
 	gpioPWM(26, 130);
 	gpioPWM(4 , 130);
 	gpioPWM(13, 130);
-	gpioPWM(2 , 130);/*
+	gpioPWM(2 , 130);
+	usleep(30000);
+
+	/*
 	usleep(10000);
 	gpioPWM(26, 150);
 	gpioPWM(4 , 150);
@@ -256,7 +259,10 @@ void rightPWM(){
 	gpioPWM(19, 130);
 	gpioPWM(17, 130);
 	gpioPWM(6 , 130);
-	gpioPWM(3 , 130);/*
+	gpioPWM(3 , 130);
+	usleep(30000);
+
+	/*
 	usleep(10000);
 	gpioPWM(19, 150);
 	gpioPWM(17, 150);
@@ -278,45 +284,6 @@ static char* snd_PORT = "10024";
 static char* rcv_PORT="10023";
 static char* IP_ADDR="192.168.0.101";
 
-
-
-void ripple(unsigned char input){
-	switch(input){
-	case FORWARD:{
-		usleep(8000);
-		idle();
-		usleep(1000);
-		forward();
-		usleep(3000);
-		idle();
-	}	
-	case BACK:{
-		usleep(8000);
-		idle();	
-		usleep(1000);
-		back();
-		usleep(3000);
-		idle();	
-	}		
-	case LEFT:{
-		usleep(8000);
-		idle();	
-		usleep(1000);
-		left();
-		usleep(3000);
-		idle();	
-	}	
-	case RIGHT:{
-		usleep(8000);
-		idle();	
-		usleep(1000);
-		right();
-		usleep(3000);
-		idle();	
-	}
-	default: transmit(output);
-	}
-}
 
 std::mutex mtxLock;
 void idle_thread(unsigned int *idle_counter){

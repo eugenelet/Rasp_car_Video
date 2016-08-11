@@ -22,6 +22,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h> /*strtol*/
+#include <dirent.h>
 
 #include <thread>
 #include <mutex>
@@ -89,7 +90,7 @@ void computeSift(mySIFT &sift_obj, Mat img_scene, Mat img_color, bool time_on);
 void computeSift_left(mySIFT &sift_obj, Mat img_scene, Mat img_color, bool time_on);
 void calculateR(Mat& R, Mat& Dxx, Mat& Dxy, Mat& Dyy);
 void computeDxxDxyDyy(Mat& src, Mat& Dxx, Mat& Dxy, Mat& Dyy);
-void match_multi(mySIFT* left, mySIFT& right, char** targetFile, Mat img_scene, int target_num, int target_pick);
+void match_multi(mySIFT* left, mySIFT& right, vector<char*> targetFile, Mat img_scene, int target_num, int target_pick);
 Mat concatMultiImg(Mat* target, Mat& scene, int& target_num, int& maxCol, int& target_pick);
 char getch();
 void trackObject(vector<Point2f> &computed_corners, Mat &result, mySIFT &left, mySIFT &right, int &maxCol);

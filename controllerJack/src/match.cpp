@@ -15,7 +15,7 @@ int MaxCol(Mat* target, int target_num){
 	return current_max;
 }
 
-void match_multi(mySIFT* left, mySIFT& right, char** targetFile, Mat img_scene, int target_num, int target_pick)
+void match_multi(mySIFT* left, mySIFT& right, vector<char*> targetFile, Mat img_scene, int target_num, int target_pick)
 {
     Mat* target = new Mat[target_num]; // = imread(targetFile1);//§Ú­n±m¦âªº
 	vector< vector<Key_Point> > a;
