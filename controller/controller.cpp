@@ -230,10 +230,12 @@ int main(int argc, char** argv)
     e.g. "http://user:pass@cam_address:8081/cgi/mjpg/mjpg.cgi?.mjpg" */
 
     //open the video stream and make sure it's opened
+    cout << "WTF" << endl;
     if(!vcap.open(videoStreamAddress)) {
         std::cout << "Error opening video stream or file" << std::endl;
         return -1; 
     }  
+    cout << "WTF" << endl;
 
 
     Mat img_object = imread("target.jpg", CV_LOAD_IMAGE_GRAYSCALE);
