@@ -13,7 +13,6 @@
 using namespace cv;
 using namespace std;
 
-int keyIn;
 int sokt;
 
 int localSocket;
@@ -45,11 +44,20 @@ void sigint(int a){
 	sigIntFlag = true;
 }
 
-void* getch_thread(void* data){
+pthread_mutex_t target_mutex;
+
+typedef struct target_choice_info{
+    int* target_num;
+    int* target_pick;
+};
+
+void* getch_thread(void* arg){
     unsigned char output[DATAGRAM_SIZE];
 	unsigned char* receivedPacket;
     int bytes;
 	bool wrongKey = false;
+    int keyIn;
+    target_choice_info *target_choice = (target_choice_info*) arg;
     while(1){
 		tcflush(STDIN_FILENO, TCIFLUSH);	
 		keyIn = getch();
@@ -93,6 +101,17 @@ void* getch_thread(void* data){
 				transmit(output);
 				break;
 			}
+            case 'n':{
+                wrongKey = true;
+                pthread_mutex_lock(&target_mutex);
+                if(*(target_choice->target_pick) < *(target_choice->target_num) - 1)
+                    *(target_choice->target_pick) = *(target_choice->target_pick) + 1;
+                else
+                    *(target_choice->target_pick) = 0;
+                cout << "Next Target. " << "(" << *(target_choice->target_pick) << ")"<< endl;
+                pthread_mutex_unlock(&target_mutex);
+                break;
+            }
             default:{
 				cout <<"\n\n\n\n" ;
 				cout << "================================" << endl;
@@ -135,13 +154,20 @@ void task(VideoCapture* cap, Mat* frame){
 int main(int argc, char* argv[])
 {
     
+    int* target_num = new int;
+    int* target_pick = new int;
+    *target_num = 3;
+    *target_pick = 0;
+    target_choice_info *targetChoiceInfo = new target_choice_info;
+    targetChoiceInfo->target_num = target_num;
+    targetChoiceInfo->target_pick = target_pick;
 
     pthread_t  getch_t, video_t;
 
 
     transmit_init(IP_ADDR, snd_PORT);  
     receiver_init(rcv_PORT); 
-    pthread_create(&getch_t, NULL, getch_thread, (void*)&keyIn);
+    pthread_create(&getch_t, NULL, getch_thread, targetChoiceInfo);
 
     signal(SIGINT, sigint);
 
@@ -186,15 +212,14 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     clock_t start, end;
-    int target_num = 3;
-    char** targetFile = new char*[target_num];//"target.jpg";
-    mySIFT* sift_target = new mySIFT[target_num];
+    char** targetFile = new char*[*target_num];//"target.jpg";
+    mySIFT* sift_target = new mySIFT[*target_num];
     char* str1 = "target/target";
     char* str2 = ".jpg";
-    Mat* target = new Mat[target_num];
+    Mat* target = new Mat[*target_num];
     char buffer[10];
     if(multi_on){
-        for(int i = 0; i < target_num; i++){
+        for(int i = 0; i < *target_num; i++){
             sift_target[i] = mySIFT(1.414, 1.414, 3);//sigma k
             sprintf(buffer, "%d", i);
             char * tmp = (char *) malloc(1 + strlen(str1) + strlen(buffer) + strlen(str2) );
@@ -239,8 +264,11 @@ int main(int argc, char* argv[])
         cvtColor(img_scene, imgScene, CV_BGR2GRAY);
         computeSift(hoho, imgScene, img_scene, time_on);
         //start = clock();
-        if(multi_on)
-            match_multi(sift_target, hoho, targetFile, img_scene, target_num, 0);
+        if(multi_on){
+            pthread_mutex_lock(&target_mutex);
+            match_multi(sift_target, hoho, targetFile, img_scene, *target_num, *target_pick);
+            pthread_mutex_unlock(&target_mutex);
+        }
         else
             match(sift_target[0], hoho, targetFile[0], img_scene, s);
 

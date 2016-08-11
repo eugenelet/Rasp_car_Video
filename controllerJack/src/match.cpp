@@ -28,7 +28,7 @@ void match_multi(mySIFT* left, mySIFT& right, char** targetFile, Mat img_scene, 
 	
 	Mat find = img_scene;
 	int maxCol = MaxCol(target, target_num);
-	Mat result = concatMultiImg(target, find, target_num, maxCol);
+	Mat result = concatMultiImg(target, find, target_num, maxCol, target_pick);
 
 	// vector< Point2f > obj1, obj2;
 	// vector< Point2f > scene, scene2;
@@ -142,7 +142,7 @@ int RowSum(Mat* target, int& target_num){
 	return accuSum;
 }
 
-Mat concatMultiImg(Mat* target, Mat& scene, int& target_num, int& maxCol)
+Mat concatMultiImg(Mat* target, Mat& scene, int& target_num, int& maxCol, int& target_pick)
 {   
     //cout << i1.type();
     int rowSum = RowSum(target, target_num);
@@ -157,6 +157,8 @@ Mat concatMultiImg(Mat* target, Mat& scene, int& target_num, int& maxCol)
     	for(int col = 0; col < scene.cols; col++)
     		concat_out.at<Vec3b>(row, col + maxCol) = scene.at<Vec3b>(row, col);
 
+    rectangle(concat_out, Point(0, computeRow(target, target_pick)), 
+    	Point(target[target_pick].cols, computeRow(target, target_pick) + target[target_pick].rows), Scalar(0, 255, 255), 4);
     return concat_out;
 }
 
