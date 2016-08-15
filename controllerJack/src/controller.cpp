@@ -45,10 +45,11 @@ void sigint(int a){
 }
 
 pthread_mutex_t target_mutex;
-
+pthread_mutex_t mtxSave;
 typedef struct target_choice_info{
     int* target_num;
     int* target_pick;
+    Mat* img_scene;
 };
 
 void* getch_thread(void* arg){
@@ -112,11 +113,24 @@ void* getch_thread(void* arg){
                 pthread_mutex_unlock(&target_mutex);
                 break;
             }
+            case 'p':{
+                char* saveFile = "snapshot.jpg";
+                wrongKey = true;
+                pthread_mutex_lock(&mtxSave);
+                imwrite(saveFile, *(target_choice->img_scene) );
+                pthread_mutex_unlock(&mtxSave);
+                cout << "Picture saved as " << saveFile << endl;
+                imshow("Snapshot", imread(saveFile));
+                waitKey(30);
+                break;
+            }
             default:{
 				cout <<"\n\n\n\n" ;
 				cout << "================================" << endl;
                 cout <<"W,A,S,D for Control." << endl <<
-					"C to cancel."<<endl <<
+                    "P to take snapshot."<<endl <<
+                    "N to pick next target. (Multi Target)"<<endl <<
+					"C to terminate program."<<endl <<
 					"H to Shutdown Pi." << endl;
 				cout << "================================" << endl;
 				cout <<"\n\n\n\n" ;
@@ -192,6 +206,8 @@ int main(int argc, char* argv[])
             }
         }
 
+    Mat img_scene;
+
     vector<char*> dirContent;
     
     int* target_num = new int;
@@ -205,7 +221,8 @@ int main(int argc, char* argv[])
     target_choice_info *targetChoiceInfo = new target_choice_info;
     targetChoiceInfo->target_num = target_num;
     targetChoiceInfo->target_pick = target_pick;
-    pthread_t  getch_t, video_t;
+    targetChoiceInfo->img_scene = &img_scene;
+    pthread_t  getch_t;
 
     transmit_init(IP_ADDR, snd_PORT);  
     receiver_init(rcv_PORT); 
@@ -233,6 +250,7 @@ int main(int argc, char* argv[])
 
     vcap>>frame;
     //vcap.grab();
+    
     thread t(task, &vcap, &frame);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -268,7 +286,6 @@ int main(int argc, char* argv[])
     }
 
     while (1){
-        Mat img_scene;
 
         if(sigIntFlag){
             pthread_cancel(getch_t);
@@ -277,7 +294,9 @@ int main(int argc, char* argv[])
 
         if(!frame.empty()){
             mtxCam.lock();
+            pthread_mutex_lock(&mtxSave);
             frame.copyTo(img_scene);
+            pthread_mutex_unlock(&mtxSave);
             mtxCam.unlock();
         }
 

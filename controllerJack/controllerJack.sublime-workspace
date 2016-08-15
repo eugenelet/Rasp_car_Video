@@ -4,6 +4,30 @@
 		"selected_items":
 		[
 			[
+				"pthread_mut",
+				"pthread_mutex_unlock"
+			],
+			[
+				"targ",
+				"target_num"
+			],
+			[
+				"tar",
+				"targetFile"
+			],
+			[
+				"target",
+				"target_num"
+			],
+			[
+				"mul",
+				"multi_on"
+			],
+			[
+				"compute",
+				"computed_corners"
+			],
+			[
 				"accu",
 				"accuBiasDelta"
 			],
@@ -20,20 +44,8 @@
 				"multi_on"
 			],
 			[
-				"tar",
-				"targetFile2"
-			],
-			[
-				"target",
-				"targetFile"
-			],
-			[
 				"compu",
 				"computeSift"
-			],
-			[
-				"targ",
-				"targetFile"
 			],
 			[
 				"img",
@@ -432,10 +444,6 @@
 				"node1_num"
 			],
 			[
-				"compute",
-				"computeCost"
-			],
-			[
 				"push",
 				"push_back"
 			],
@@ -506,40 +514,16 @@
 			[
 				"parent",
 				"parentNode"
-			],
-			[
-				"choe",
-				"chosenNode"
-			],
-			[
-				"node2",
-				"node2_num"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "Makefile",
-			"settings":
-			{
-				"buffer_size": 641,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "include/sift.h",
 			"settings":
 			{
-				"buffer_size": 4321,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "include/receiver.h",
-			"settings":
-			{
-				"buffer_size": 77,
+				"buffer_size": 4376,
 				"line_ending": "Unix"
 			}
 		},
@@ -547,31 +531,23 @@
 			"file": "src/controller.cpp",
 			"settings":
 			{
-				"buffer_size": 8163,
+				"buffer_size": 9839,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "src/createDoG.cpp",
+			"file": "src/receiver.cpp",
 			"settings":
 			{
-				"buffer_size": 3217,
+				"buffer_size": 2107,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "src/detectKeypoints.cpp",
+			"file": "src/transmit.cpp",
 			"settings":
 			{
-				"buffer_size": 3766,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/computeSift.cpp",
-			"settings":
-			{
-				"buffer_size": 2399,
+				"buffer_size": 1471,
 				"line_ending": "Unix"
 			}
 		},
@@ -579,23 +555,15 @@
 			"file": "src/match.cpp",
 			"settings":
 			{
-				"buffer_size": 10257,
+				"buffer_size": 10241,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "src/getChar.cpp",
+			"file": "src/trackObject.cpp",
 			"settings":
 			{
-				"buffer_size": 653,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/filterKeyPoints.cpp",
-			"settings":
-			{
-				"buffer_size": 4529,
+				"buffer_size": 3619,
 				"line_ending": "Unix"
 			}
 		}
@@ -667,6 +635,14 @@
 	],
 	"file_history":
 	[
+		"/home/gene/Documents/NCTU/Project/raspCarVid/controllerJack/src/meeting_8-13",
+		"/home/gene/Documents/NCTU/Project/raspCarVid/controllerJack/include/receiver.h",
+		"/home/gene/Documents/NCTU/Project/raspCarVid/controllerJack/Makefile",
+		"/home/gene/Documents/NCTU/Project/raspCarVid/controllerJack/src/filterKeyPoints.cpp",
+		"/home/gene/Documents/NCTU/Project/raspCarVid/controllerJack/src/getChar.cpp",
+		"/home/gene/Documents/NCTU/Project/raspCarVid/controllerJack/src/computeSift.cpp",
+		"/home/gene/Documents/NCTU/Project/raspCarVid/controllerJack/src/detectKeypoints.cpp",
+		"/home/gene/Documents/NCTU/Project/raspCarVid/controllerJack/src/createDoG.cpp",
 		"/home/gene/Documents/NCTU/Project/raspCarVid/controllerJack/include/global.h",
 		"/home/gene/Documents/NCTU/Project/raspCarVid/controllerFull/controller.cpp",
 		"/home/gene/Documents/NCTU/Project/raspCarVid/controllerJack/src/main.cpp",
@@ -794,6 +770,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"snd_PORT",
+			"video_t",
+			"imshow",
+			"target_mutex",
+			"trackOb",
 			"cout",
 			"1.6",
 			"biasQueue",
@@ -919,53 +900,24 @@
 	"groups":
 	[
 		{
-			"selected": 7,
+			"selected": 5,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "Makefile",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 641,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								342,
-								342
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/Material Theme/schemes/Material-Theme-Darker.tmTheme",
-							"syntax": "Packages/Makefile/Makefile.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 9,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
 					"file": "include/sift.h",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4321,
+						"buffer_size": 4376,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1768,
-								1768
+								2426,
+								2426
 							]
 						],
 						"settings":
@@ -975,55 +927,27 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1401.0,
+						"translation.y": 1440.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "include/receiver.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 77,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 7,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
+					"buffer": 1,
 					"file": "src/controller.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 8163,
+						"buffer_size": 9839,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2980,
-								2980
+								6342,
+								6342
 							]
 						],
 						"settings":
@@ -1034,27 +958,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 5688.0,
+						"translation.y": 5139.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 8,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "src/createDoG.cpp",
+					"buffer": 2,
+					"file": "src/receiver.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3217,
+						"buffer_size": 2107,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								818,
-								818
+								1249,
+								1249
 							]
 						],
 						"settings":
@@ -1063,143 +987,57 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 75.0,
+						"translation.y": 952.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
-					"file": "src/detectKeypoints.cpp",
-					"semi_transient": false,
+					"buffer": 3,
+					"file": "src/transmit.cpp",
+					"semi_transient": true,
 					"settings":
 					{
-						"buffer_size": 3766,
+						"buffer_size": 1471,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1719,
-								1719
+								508,
+								508
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
 						},
-						"translation.x": -0.0,
-						"translation.y": 651.0,
+						"translation.x": 0.0,
+						"translation.y": 576.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
-					"file": "src/computeSift.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2399,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								32,
-								32
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 5,
-					"type": "text"
-				},
-				{
-					"buffer": 7,
+					"buffer": 4,
 					"file": "src/match.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 10257,
+						"buffer_size": 10241,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3608,
-								3608
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 2016.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "src/getChar.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 653,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								27,
-								27
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"tab_size": 8,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 6,
-					"type": "text"
-				},
-				{
-					"buffer": 9,
-					"file": "src/filterKeyPoints.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 4529,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								890,
-								890
+								515,
+								515
 							]
 						],
 						"settings":
@@ -1208,10 +1046,40 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 219.0,
+						"translation.y": 5976.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "src/trackObject.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3619,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3026,
+								3026
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1425.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
