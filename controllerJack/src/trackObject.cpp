@@ -1,5 +1,7 @@
 #include "../include/sift.h"
 
+extern int distance_obj;
+
 int perimeter = 0;
 int biasX = 0;
 vector<int> accuPerimeter;
@@ -82,9 +84,13 @@ void trackObject(vector<Point2f> &computed_corners, Mat &result, mySIFT &left, m
             transmit(output);
         }
         if(currentPerimeter < 1000){
-            output[1] = FORWARD;
-            cout << "FORWARD!" << endl;
-            transmit(output);
+            if(distance_obj>15){
+                output[1] = FORWARD;
+                cout << "FORWARD!" << endl;
+                transmit(output);
+            }
+            else
+                cout << "Object too near!" << endl;
         }
     }
 }

@@ -34,8 +34,7 @@ using namespace std;
 
 #define CONTROL 0x01
 #define DETECT  0x02
-#define ULTRA   0x03
-#define ACK     0x04
+#define VIDEO   0x03
 
 /*************************************
         FUNCTION
@@ -62,12 +61,6 @@ using namespace std;
 #define STOP    0x03
 #define SENT    0x04
 
-#define TRIG 23
-#define ECHO 24
-
-////////////////////
-int last_range = 0;	     // last sonar reading
-////////////////////
 
 GPIOClass* frontLeft1; 
 GPIOClass* frontLeft2;
@@ -94,19 +87,15 @@ void idle(){
 }
 
 void forward(){
-	if(last_range>15){
-		cout << "FORWARD" << endl;
-		gpioWrite(19, 0);
-		gpioWrite(26, 1);
-		gpioWrite(4 , 0);
-		gpioWrite(17, 1);
-		gpioWrite(6 , 0);
-		gpioWrite(13, 1);
-		gpioWrite(2 , 0);
-		gpioWrite(3 , 1);
-	}
-	else
-		cout << "Too Near!" << endl;
+	cout << "FORWARD" << endl;
+	gpioWrite(19, 0);
+	gpioWrite(26, 1);
+	gpioWrite(4 , 0);
+	gpioWrite(17, 1);
+	gpioWrite(6 , 0);
+	gpioWrite(13, 1);
+	gpioWrite(2 , 0);
+	gpioWrite(3 , 1);
 	transmit(output);
 }
 
@@ -162,23 +151,59 @@ void idlePWM(){
 }
 
 void forwardPWM(){
-	if(last_range>15){
-		cout << "FORWARD" << endl;
-		gpioPWM(19, 200);
-		gpioPWM(4 , 200);
-		gpioPWM(6 , 200);
-		gpioPWM(2 , 200);
-		usleep(900000);
-	}
-	else
-		cout << "Too Near!" << endl;
+	cout << "FORWARD" << endl;
+	/*gpioPWM(19, 0);
+	gpioPWM(4 , 0);
+	gpioPWM(6 , 0);
+	gpioPWM(2 , 0);
+	usleep(8000);
+	gpioPWM(19, 20);
+	gpioPWM(4 , 20);
+	gpioPWM(6 , 20);
+	gpioPWM(2 , 20);
+	usleep(5000);
+	gpioPWM(19, 100);
+	gpioPWM(4 , 100);
+	gpioPWM(6 , 100);
+	gpioPWM(2 , 100);
+	usleep(4000);
+	gpioPWM(19, 180);
+	gpioPWM(4 , 180);
+	gpioPWM(6 , 180);
+	gpioPWM(2 , 180);
+	usleep(2000);
+	gpioPWM(19, 220);
+	gpioPWM(4 , 220);
+	gpioPWM(6 , 220);
+	gpioPWM(2 , 220);
+	usleep(1000);*/
+	gpioPWM(19, 200);
+	gpioPWM(4 , 200);
+	gpioPWM(6 , 200);
+	gpioPWM(2 , 200);
+	usleep(900000);
 
+	/*
+	usleep(20000);
+	gpioPWM(19, 150);
+	gpioPWM(4 , 150);
+	gpioPWM(6 , 150);
+	gpioPWM(2 , 150);
+	usleep(20000);
+	gpioPWM(19, 200);
+	gpioPWM(4 , 200);
+	gpioPWM(6 , 200);
+	gpioPWM(2 , 200);*/
 	transmit(output);
 }
 
 void backPWM(){
 	cout << "BACK" << endl;
-
+	/*gpioPWM(26, 20);
+	gpioPWM(17, 20);
+	gpioPWM(13, 20);
+	gpioPWM(3 , 20);
+	usleep(1000);*/
 	gpioPWM(26, 110);
 	gpioPWM(17, 110);
 	gpioPWM(13, 110);
@@ -198,24 +223,56 @@ void backPWM(){
 
 void leftPWM(){
 	cout << "LEFT" << endl;
+	/*gpioPWM(26, 20);
+	gpioPWM(4 , 20);
+	gpioPWM(13, 20);
+	gpioPWM(2 , 20);
+	usleep(1000);*/
 	gpioPWM(26, 130);
 	gpioPWM(4 , 130);
 	gpioPWM(13, 130);
 	gpioPWM(2 , 130);
 	usleep(30000);
 
+	/*
+	usleep(10000);
+	gpioPWM(26, 150);
+	gpioPWM(4 , 150);
+	gpioPWM(13, 150);
+	gpioPWM(2 , 150);
+	usleep(20000);
+	gpioPWM(26, 200);
+	gpioPWM(4 , 200);
+	gpioPWM(13, 200);
+	gpioPWM(2 , 200);*/
+
 	transmit(output);
 }
 
 void rightPWM(){
 	cout << "RIGHT" << endl;
-
+	/*gpioPWM(19, 20);
+	gpioPWM(17, 20);
+	gpioPWM(6 , 20);
+	gpioPWM(3 , 20);
+	usleep(1000);*/
 	gpioPWM(19, 130);
 	gpioPWM(17, 130);
 	gpioPWM(6 , 130);
 	gpioPWM(3 , 130);
 	usleep(30000);
 
+	/*
+	usleep(10000);
+	gpioPWM(19, 150);
+	gpioPWM(17, 150);
+	gpioPWM(6 , 150);
+	gpioPWM(3 , 150);
+	usleep(20000);
+	gpioPWM(19, 200);
+	gpioPWM(17, 200);
+	gpioPWM(6 , 200);
+	gpioPWM(3 , 200);*/
 
 	transmit(output);
 }
@@ -229,8 +286,7 @@ static char* IP_ADDR="192.168.0.101";
 
 
 std::mutex mtxLock;
-void* idle_thread(void* arg){
-	unsigned int* idle_counter = (unsigned int*)arg;
+void idle_thread(unsigned int *idle_counter){
 	while(1){
 		cout << "SEARCHING..... " << *idle_counter << endl;
 		mtxLock.lock();
@@ -247,103 +303,11 @@ void* idle_thread(void* arg){
 	}
 }
 
-//////////////////////////////////////////////
-
-volatile uint32_t before;  // used for sonar distance
-
-
-void delay(int ms) {  // delay in miliseconds
-    gpioDelay(1000*ms); 
-}
-
-void ping(void) {     // send out an ultrasonic 'ping'
-
-   before = 0xffffffff; // set for guard variable
-
-   gpioSetMode(TRIG, PI_OUTPUT);
-
-   // trigger a sonar pulse
-   
-   gpioWrite(TRIG, PI_OFF);
-   gpioDelay(5);
-   gpioWrite(TRIG, PI_ON);
-   gpioDelay(10); 	
-   gpioWrite(TRIG, PI_OFF);
-   gpioDelay(5);
-
-   gpioSetMode(ECHO, PI_INPUT);
-
-   before = gpioTick(); // get tick right after sending pulse
-   
-}
-
-// range - callback function for measuring ping response
-
-void range(int gpio, int level, uint32_t tick) {
-
-   static uint32_t startTick, endTick;
-   
-   uint32_t diffTick;
-
-   if (tick>before) { // make sure we don't measure trigger pulse
-
-      if (level == PI_ON) { // start counting on rising edge
-         startTick = tick;
-      }  
-      else if (level == PI_OFF) { // stop counting on falling edge
-
-         endTick = tick;
-         diffTick = (endTick - startTick)/58;
-
-         last_range = diffTick;
-
-         if (diffTick < 600)
-            printf("%u\n", diffTick);
-         else {
-            printf("OUT OF RANGE"); // for seeedstudio sensor
-            last_range = 0;
-         }
-      }
-
-   }
-
-}
-
-void sleep(int t) {
-  gpioSleep(PI_TIME_RELATIVE, t, 0);
-}
-
-
-void* ultra_thread(void* arg){
- 	unsigned char output_ultra[DATAGRAM_SIZE];
-
- 	output_ultra[0] = ULTRA;
-
-	gpioSetMode(ECHO, PI_INPUT);
-
-	// register callback on change of sonar pin
-	gpioSetAlertFunc(ECHO, range); 
-
-	sleep(2);    
-	while (1) {
-
-		ping();	// prime the last_range variable
-		// sleep(1);
-		usleep(500000);
-		output_ultra[1] = last_range & 0xFF;
-		output_ultra[2] = (last_range >> 8) & 0xFF;
-		output_ultra[3] = (last_range >> 16) & 0xFF;
-		output_ultra[4] = (last_range >> 24) & 0xFF;
-		transmit(output_ultra);
-	}
- }
-//////////////////////////////////////////////
 
 int requestFlag = 0;
 int main(int argc, char** argv){
     unsigned char* receivedPacket;
     int bytes, opcode;
-    output[0] = ACK;
     receiver_init(rcv_PORT);
 	transmit_init(IP_ADDR, snd_PORT);
 	if (gpioInitialise() < 0)
@@ -363,11 +327,7 @@ int main(int argc, char** argv){
 	gpioSetMode(3, PI_OUTPUT);
 
 	unsigned int idle_counter = 0;
-	pthread_t idle_t, ultra_t;
-	pthread_create(&idle_t, NULL, idle_thread, &idle_counter);
-	pthread_create(&ultra_t, NULL, ultra_thread, &idle_counter);
-	// thread t(idle_thread, &idle_counter);
-	// thread ultra(ultra_thread);
+	thread t(idle_thread, &idle_counter);
 
     while(1){
         receivedPacket = receiver();
@@ -398,20 +358,8 @@ int main(int argc, char** argv){
                         right();
                     }
 					else if(receivedPacket[1] == SIG_INT){
-						// pthread_t handler = t.native_handle();
-						// pthread_cancel(handler);
-						// handler = ultra.native_handle();
-						// pthread_cancel(handler);
-						if(pthread_cancel(idle_t))
-							cout << "idle_t cancel fail..." << endl;
-						else
-							cout << "idle_t cancel SUCCESS!" << endl;
-
-						if(pthread_cancel(ultra_t))
-							cout << "ultra_t cancel fail..." << endl;
-						else
-							cout << "ultra_t cancel SUCCESS!" << endl;
-
+						pthread_t handler = t.native_handle();
+						pthread_cancel(handler);
 					    gpioTerminate();
 					    
 						close_transmit();
@@ -420,7 +368,6 @@ int main(int argc, char** argv){
 						usleep(3000000);
 						receiver_init(rcv_PORT);
 			 			transmit_init(IP_ADDR, snd_PORT);
-
 						if (gpioInitialise() < 0)
 						{
 						  fprintf(stderr, "pigpio initialisation failed\n");
@@ -436,14 +383,6 @@ int main(int argc, char** argv){
 						gpioSetMode(13, PI_OUTPUT);
 						gpioSetMode(2, PI_OUTPUT);
 						gpioSetMode(3, PI_OUTPUT);
-						pthread_create(&idle_t, NULL, idle_thread, &idle_counter);
-						pthread_create(&ultra_t, NULL, ultra_thread, &idle_counter);
-
-						// thread t(idle_thread, &idle_counter);
-						// thread ultra(ultra_thread);
-						// t.detach();
-						// ultra.detach();
-
 
 					}
 					else if(receivedPacket[1] == SHUTDOWN){

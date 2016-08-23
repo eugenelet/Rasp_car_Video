@@ -1,4 +1,6 @@
 #include "../include/sift.h"
+
+
 /**************************
         SIFT TOOLS
 ***************************/
@@ -24,7 +26,7 @@ static char* rcv_PORT="10024";
 static char* IP_ADDR="192.168.0.100";
 
 /////////////////////////////////////////////////////////////////
-int distance_obj = 0;
+
 /////////////////////////////////////////////////////////////////
 
 
@@ -44,35 +46,27 @@ void sigint(int a){
 
 pthread_mutex_t target_mutex;
 pthread_mutex_t mtxSave;
-pthread_mutex_t mtxRecv;
 typedef struct target_choice_info{
     int* target_num;
     int* target_pick;
     Mat* img_scene;
 };
-unsigned char* receivedPacket = NULL;
-bool receivedACKPacket = false;
 
 void* ultra_thread(void* arg){
-
+    unsigned char* receivedPacket;
+    int distance = 0;
     while(1){
-        pthread_mutex_lock(&mtxRecv);
         receivedPacket = receiver();
-        pthread_mutex_unlock(&mtxRecv);
-        if(receivedPacket!=NULL)
-            if(receivedPacket[0] == ULTRA){
-                distance_obj = (receivedPacket[4] << 24) | (receivedPacket[3] << 16) | (receivedPacket[2] << 8) | receivedPacket[1];
-                cout << distance_obj << endl;
-            }
-            else if(receivedPacket[0] == ACK){
-                receivedACKPacket = true;
-            }
+        if(receivedPacket[0] == ULTRA){
+            distance = (receivedPacket[4] << 24) | (receivedPacket[3] << 16) | (receivedPacket[2] << 8) | receivedPacket[1];
+            cout << distance << endl;
+        }
     }
 }
 
 void* getch_thread(void* arg){
     unsigned char output[DATAGRAM_SIZE];
-	// unsigned char* receivedPacket;
+	unsigned char* receivedPacket;
     int bytes;
 	bool wrongKey = false;
     int keyIn;
@@ -103,16 +97,10 @@ void* getch_thread(void* arg){
                 break;
             }
             case 'w':{
-                if(distance_obj>15){
-                    cout <<"forward"<<endl;
-                    output[0] = CONTROL;
-                    output[1] = FORWARD;
-                    transmit(output);
-                }
-                else{
-                    wrongKey = true;
-                    cout << "Object too near!" << endl;
-                }
+                cout <<"forward"<<endl;
+                output[0] = CONTROL;
+                output[1] = FORWARD;
+                transmit(output);
                 break;
             }
             case 'c':{
@@ -167,13 +155,8 @@ void* getch_thread(void* arg){
 			wrongKey = false;
 		}
 		else{
-            // pthread_mutex_lock(&mtxRecv);
-			// receivedPacket = receiver();
-            // pthread_mutex_unlock(&mtxRecv);
-            if(receivedACKPacket){
-                receivedACKPacket = false;
-    			cout << "ACK!" << endl;
-            }
+			receivedPacket = receiver();
+			cout << "ACK!" << endl;
 		}
     }
     pthread_exit(NULL);

@@ -38,7 +38,8 @@
 
 #define CONTROL 0x01
 #define DETECT  0x02
-#define VIDEO   0x03
+#define ULTRA   0x03
+#define ACK     0x04
 
 /*************************************
         FUNCTION
@@ -78,6 +79,7 @@
 
 using namespace cv;
 using namespace std;
+
 
 class Key_Point;
 class mySIFT;
